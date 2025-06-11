@@ -116,12 +116,14 @@ FastPFOR/src/bitpackingunaligned.cpp FastPFOR/src/horizontalbitpacking.cpp \
 FastPFOR/src/simdunalignedbitpacking.cpp FastPFOR/src/codecfactory.cpp \
 FastPFOR/src/simdbitpacking.cpp FastPFOR/src/varintdecode.c \
 FastPFOR/src/streamvbyte.c
+	$(CC) $(CFLAGS) -c FastPFOR/src/varintdecode.c -IFastPFOR/headers
+	$(CC) $(CFLAGS) -c FastPFOR/src/streamvbyte.c -IFastPFOR/headers
 	$(CXX) $(CXXFLAGS) -o simdpfor_benchmarks FastPFOR/src/inmemorybenchmark.cpp \
-	FastPFOR/src/bitpacking.cpp FastPFOR/src/bitpackingaligned.cpp \
-	FastPFOR/src/bitpackingunaligned.cpp FastPFOR/src/horizontalbitpacking.cpp \
-	FastPFOR/src/simdunalignedbitpacking.cpp FastPFOR/src/codecfactory.cpp \
-	FastPFOR/src/simdbitpacking.cpp FastPFOR/src/varintdecode.c \
-	FastPFOR/src/streamvbyte.c -IFastPFOR/headers
+FastPFOR/src/bitpacking.cpp FastPFOR/src/bitpackingaligned.cpp \
+FastPFOR/src/bitpackingunaligned.cpp FastPFOR/src/horizontalbitpacking.cpp \
+FastPFOR/src/simdunalignedbitpacking.cpp FastPFOR/src/codecfactory.cpp \
+FastPFOR/src/simdbitpacking.cpp varintdecode.o streamvbyte.o -IFastPFOR/headers
+	rm -f varintdecode.o streamvbyte.o
 
 clean:
 	rm -r -f   $(EXECUTABLES) src/roaring.c src/roaring.h src/roaring.hh bigtmp
