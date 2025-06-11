@@ -22,7 +22,7 @@ static inline uint8_t bits_required(uint32_t x) {
 
 int main(int argc, char **argv) {
     bool verbose = false;
-    char *extension = ".txt";
+    const char *extension = ".txt";
     int c;
     while ((c = getopt(argc, argv, "v")) != -1) {
         switch (c) {
