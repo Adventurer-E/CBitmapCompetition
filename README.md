@@ -21,7 +21,7 @@ For each of these collections of sets, we do the following :
 - Computing the symmetric intersection size between successive sets without materializing the answer.
 
 Thus, we output several numbers:
-- The memory usage, expressed as a floating-point numbers representing the number of bits used by value. In practice, this is computed by counting the number of bits used in RAM divided by the total cardinality. The total cardinality is given by the sum of the cardinalities of all sets. Thus if you have 200 sets each containing 10 values, your total cardinality is 2000, if you use 2000 bytes of memory, then your number of bits per value will be 8.0.
+- The memory usage, reported as the percentage of the space that an uncompressed 32‑bit representation would require. It is computed by dividing the total number of bytes used by four times the total cardinality and multiplying by 100.
 - The number of CPU cycles used to compute the successive intersections, normalized by the number of input values.
 - The number of CPU cycles used to compute the successive unions, normalized by the number of input values.
 - The number of CPU cycles used to compute the total union using a naive algorithm, normalized by the number of input values.
@@ -58,7 +58,7 @@ GCC 6.2, Skylake processor (3.4 GHz), CRoaring 0.2.3 (Sept. 9 2016).
 
 For the first column of numbers, smaller is better (it is memory usage) whereas for all other columns, smaller is better (they are CPU cycles per operation).
 
-First column is memory usage per value in bits.
+First column is memory usage expressed as a percentage of the uncompressed 32-bit representation.
 Second column is 2-by-2 intersection time (with cardinality computation). Third column is 2-by-2 union time (with cardinality computation).
 Fourth and fifth columns are wide unions times (unions of many sets) using either a naive or a heap-based approach depending on the column.
 Last column is random access time.
@@ -70,7 +70,7 @@ Where it appears, the "-r" flag means "with better compression". The "-c" flag m
 ```bash
 $ make test
 ./scripts/all.sh
-# For each data set, we print data size (in bits per value), successive intersections, successive unions and total unions [we compute the total  union first naively and then (if supported) using a heap-based approach], followed by quartile point queries (in cycles per input value), successive differences, successive symmetric differences, iterations through all values, then we have pairwise count aggregates for successive intersections, successive unions, successive differences, successive symmetric differences
+# For each data set, we print data size (in percentage of the uncompressed size), successive intersections, successive unions and total unions [we compute the total  union first naively and then (if supported) using a heap-based approach], followed by quartile point queries (in cycles per input value), successive differences, successive symmetric differences, iterations through all values, then we have pairwise count aggregates for successive intersections, successive unions, successive differences, successive symmetric differences
 # processing file  census-income
 # bitset_benchmarks
                  5.66                 0.13                 0.13                 0.09                 0.09                 3.67                  0.12                  0.12                     7.46                    0.09                  0.07                  0.09                  0.09
@@ -371,9 +371,9 @@ $ make test
 ```bash
 $ ./scripts/big.sh
 
-# For each data set, we print data size (in bits per value), successive intersections, successive unions and total unions [we compute the total  union first na
-ively and then (if supported) using a heap-based approach], followed by quartile point queries (in cycles per input value), successive differences, successive
-symmetric differences, iterations through all values, then we have pairwise count aggregates for successive intersections, successive unions, successive differ
+# For each data set, we print data size (in percentage of the uncompressed size), successive intersections, successive unions and total unions [we compute the total  union fi
+rst naively and then (if supported) using a heap-based approach], followed by quartile point queries (in cycles per input value), successive differences, successiv
+e symmetric differences, iterations through all values, then we have pairwise count aggregates for successive intersections, successive unions, successive differ
 ences, successive symmetric differences
 # bitset_benchmarks
                100.00                25.35                25.37                 5.01                 5.01                 4.92                 25.32
