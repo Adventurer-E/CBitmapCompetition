@@ -112,3 +112,5 @@ bitset_benchmarks: src/bitset_benchmarks.c cbitset/include/bitset.h cbitset/src/
 
 clean:
 	rm -r -f   $(EXECUTABLES) src/roaring.c src/roaring.h src/roaring.hh bigtmp
+simdpfor_benchmarks: src/simdpfor_benchmarks.cpp
+	\$(CXX) \$(CXXFLAGS) -o simdpfor_benchmarks ./src/simdpfor_benchmarks.cpp FastPFOR/src/bitpacking.cpp FastPFOR/src/bitpackingaligned.cpp FastPFOR/src/bitpackingunaligned.cpp FastPFOR/src/horizontalbitpacking.cpp FastPFOR/src/simdunalignedbitpacking.cpp FastPFOR/src/codecfactory.cpp FastPFOR/src/simdbitpacking.cpp FastPFOR/src/varintdecode.c FastPFOR/src/streamvbyte.c -IFastPFOR/headers
