@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
     RDTSC_START(cycles_start);
     std::vector<ConciseSet<false> > bitmaps = create_all_bitmaps(howmany, numbers, count);
     RDTSC_FINAL(cycles_final);
+    uint64_t build_cycles = cycles_final - cycles_start;
     if (bitmaps.empty()) return -1;
     if(verbose) printf("Loaded %d bitmaps from directory %s \n", (int)count, dirname);
     uint64_t totalsize = 0;
@@ -272,20 +273,10 @@ int main(int argc, char **argv) {
     * end and, or, andnot and xor cardinality
     */
 
-    printf(" %20.2f %20.2f %20.2f %20.2f %20.2f %20.2f  %20.2f  %20.2f     %20.2f    %20.2f  %20.2f  %20.2f  %20.2f\n",
+    printf(" %20.2f %20.2f %20.2f\n",
       data[0]*8.0/totalcard,
-      data[1]*1.0/successivecard,
-      data[2]*1.0/successivecard,
-      data[3]*1.0/totalcard,
-      data[4]*1.0/totalcard,
-      data[5]*1.0/(3*count),
-      data[6]*1.0/successivecard,
-      data[7]*1.0/successivecard,
-      data[8]*1.0/totalcard,
-      data[9]*1.0/successivecard,
-      data[10]*1.0/successivecard,
-      data[11]*1.0/successivecard,
-      data[12]*1.0/successivecard
+      build_cycles*1.0/(totalcard*4),
+      data[8]*1.0/(totalcard*4)
     );
     for (int i = 0; i < (int)count; ++i) {
         free(numbers[i]);
