@@ -1,3 +1,6 @@
+// Placeholder benchmark for Chimp using STL vectors
+// Actual Chimp compression is not integrated
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -7,11 +10,9 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include <unordered_set>
 #include <list>
 #include <queue>
 #include <cassert>
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,8 +22,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #ifdef MEMTRACKED
 #include "memtrackingallocator.h"
@@ -38,97 +37,108 @@ uint64_t getMemUsageInBytes()  {
     return memory_usage;
 }
 
+// credit http://stackoverflow.com/questions/37767585/count-elements-in-union-of-two-sets-using-stl
+template <typename T>
+class count_back_inserter {
+public:
+    uint64_t & count;
+    typedef void value_type;
+    typedef void difference_type;
+    typedef void pointer;
+    typedef void reference;
+    typedef std::output_iterator_tag iterator_category;
+    count_back_inserter(uint64_t & c) : count(c) {};
+    void operator=(const T &){ }
+    count_back_inserter &operator *(){ return *this; }
+    count_back_inserter &operator++(){ count++;return *this; }
+
+};
+typedef count_back_inserter<uint32_t> inserter;
 
 #ifdef MEMTRACKED
-typedef std::unordered_set<uint32_t,std::hash<uint32_t>,std::equal_to<uint32_t>,MemoryCountingAllocator<uint32_t> >  hashset;
+typedef std::vector<uint32_t,MemoryCountingAllocator<uint32_t> >  vector;
 #else
-typedef std::unordered_set<uint32_t>  hashset;
+typedef std::vector<uint32_t>  vector;
 #endif
+
+static vector  fast_logicalor(size_t n, const vector **inputs) {
+	  class StdVectorPtr {
+
+	  public:
+	    StdVectorPtr(const vector *p, bool o) : ptr(p), own(o) {}
+	    const vector *ptr;
+	    bool own; // whether to clean
+
+	    bool operator<(const StdVectorPtr &o) const {
+	      return o.ptr->size() < ptr->size(); // backward on purpose
+	    }
+	  };
+
+	  if (n == 0) {
+		return vector();
+	  }
+	  if (n == 1) {
+	    return vector(*inputs[0]);
+	  }
+	  std::priority_queue<StdVectorPtr> pq;
+	  for (size_t i = 0; i < n; i++) {
+	    // could use emplace
+	    pq.push(StdVectorPtr(inputs[i], false));
+	  }
+	  while (pq.size() > 2) {
+
+	    StdVectorPtr x1 = pq.top();
+	    pq.pop();
+
+	    StdVectorPtr x2 = pq.top();
+	    pq.pop();
+	    vector * buffer = new vector();
+      std::set_union(x1.ptr->begin(), x1.ptr->end(),x2.ptr->begin(), x2.ptr->end(),std::back_inserter(*buffer));
+	    if (x1.own) {
+	      delete x1.ptr;
+	    }
+	    if (x2.own) {
+	      delete x2.ptr;
+	    }
+	    pq.push(StdVectorPtr(buffer, true));
+	  }
+	  StdVectorPtr x1 = pq.top();
+	  pq.pop();
+
+	  StdVectorPtr x2 = pq.top();
+	  pq.pop();
+
+	  vector  container;
+    std::set_union(x1.ptr->begin(), x1.ptr->end(),x2.ptr->begin(), x2.ptr->end(),std::back_inserter(container));
+
+	  if (x1.own) {
+	    delete x1.ptr;
+	  }
+	  if (x2.own) {
+	    delete x2.ptr;
+	  }
+	  return container;
+	}
+
+
 
 /**
  * Once you have collected all the integers, build the bitmaps.
  */
-static std::vector<hashset> create_all_bitmaps(size_t *howmany,
+static std::vector<vector > create_all_bitmaps(size_t *howmany,
         uint32_t **numbers, size_t count) {
-    if (numbers == NULL) return std::vector<hashset >();
-    std::vector<hashset> answer(count);
+    if (numbers == NULL) return std::vector<vector >();
+    std::vector<vector > answer(count);
+
     for (size_t i = 0; i < count; i++) {
-        hashset & bm = answer[i];
+        vector & bm = answer[i];
         uint32_t * mynumbers = numbers[i];
         for(size_t j = 0; j < howmany[i] ; ++j) {
-            bm.insert(mynumbers[j]);
+            bm.push_back(mynumbers[j]);
         }
-        bm.rehash(howmany[i]);
+        bm.shrink_to_fit();
     }
     return answer;
-}
-
-
-static void intersection(hashset& h1, hashset& h2, hashset& answer) {
-  if(h1.size() > h2.size()) {
-    intersection(h2,h1,answer);
-    return;
-  }
-  answer.clear();
-  for(hashset::iterator i = h1.begin(); i != h1.end(); i++) {
-    if(h2.find(*i) != h2.end())
-      answer.insert(*i);
-  }
-}
-
-static size_t intersection_count(hashset& h1, hashset& h2) {
-  if(h1.size() > h2.size()) {
-    return intersection_count(h2,h1);
-  }
-  size_t answer = 0;
-  for(hashset::iterator i = h1.begin(); i != h1.end(); i++) {
-    if(h2.find(*i) != h2.end()) ++answer;
-  }
-  return answer;
-}
-
-
-static void difference(hashset& h1, hashset& h2, hashset& answer) {
-  answer.clear();
-  for(hashset::iterator i = h1.begin(); i != h1.end(); i++) {
-    if(h2.find(*i) == h2.end())
-      answer.insert(*i);
-  }
-}
-
-
-static size_t difference_count(hashset& h1, hashset& h2) {
-  size_t answer = 0;
-  for(hashset::iterator i = h1.begin(); i != h1.end(); i++) {
-    if(h2.find(*i) == h2.end())
-      answer++;
-  }
-  return answer;
-}
-
-static void symmetric_difference(hashset& h1, hashset& h2, hashset& answer) {
-  answer.clear();
-  answer.insert(h1.begin(), h1.end());
-  for(hashset::iterator i = h2.begin(); i != h2.end(); i++) {
-    auto x = answer.find(*i);
-    if(x == answer.end())
-      answer.insert(*i);
-    else
-      answer.erase(x);
-  }
-}
-
-static size_t symmetric_difference_count(hashset& h1, hashset& h2) {
-  return h1.size() + h2.size() - 2 * intersection_count(h1,h2);
-}
-
-
-static void inplace_union(hashset& h1, hashset& h2) {
-  h1.insert(h2.begin(), h2.end());
-}
-
-static size_t union_count(hashset& h1, hashset& h2) {
-  return h1.size() + h2.size() - intersection_count(h1,h2);
 }
 
 static void printusage(char *command) {
@@ -139,13 +149,6 @@ static void printusage(char *command) {
     ;
     printf("the -v flag turns on verbose mode");
 
-}
-
-
-
-
-int hashset_size_compare (const void * a, const void * b) {
-  return ( *(const hashset**)a)->size() - (*(const hashset**)b)->size() ;
 }
 
 int main(int argc, char **argv) {
@@ -199,12 +202,12 @@ int main(int argc, char **argv) {
     }
     uint64_t successivecard = 0;
     for (size_t i = 1; i < count; i++) {
-      successivecard += howmany[i-1] + howmany[i];
+       successivecard += howmany[i-1] + howmany[i];
     }
     uint64_t cycles_start = 0, cycles_final = 0;
 
     RDTSC_START(cycles_start);
-    std::vector<hashset > bitmaps = create_all_bitmaps(howmany, numbers, count);
+    std::vector<vector> bitmaps = create_all_bitmaps(howmany, numbers, count);
     RDTSC_FINAL(cycles_final);
     uint64_t build_cycles = cycles_final - cycles_start;
     if (bitmaps.empty()) return -1;
@@ -224,8 +227,8 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        hashset v;
-        intersection(bitmaps[i], bitmaps[i + 1], v);
+        vector v;
+        std::set_intersection(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
         successive_and += v.size();
     }
     RDTSC_FINAL(cycles_final);
@@ -235,8 +238,8 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        hashset v (bitmaps[i]);
-        inplace_union(v, bitmaps[i + 1]);
+        vector v;
+        std::set_union(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
         successive_or += v.size();
     }
     RDTSC_FINAL(cycles_final);
@@ -246,10 +249,12 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     if(count>1) {
-        hashset v (bitmaps[0]);
-        inplace_union(v, bitmaps[1]);
+        vector v;
+        std::set_union(bitmaps[0].begin(), bitmaps[0].end(),bitmaps[1].begin(), bitmaps[1].end(),std::back_inserter(v));
         for (int i = 2; i < (int)count ; ++i) {
-            inplace_union(v, bitmaps[i]);
+            vector newv;
+            std::set_union(v.begin(), v.end(),bitmaps[i].begin(), bitmaps[i].end(),std::back_inserter(newv));
+            v.swap(newv);
         }
         total_or = v.size();
     }
@@ -258,39 +263,40 @@ int main(int argc, char **argv) {
     if(verbose) printf("Total naive unions on %zu bitmaps took %" PRIu64 " cycles\n", count,
                            cycles_final - cycles_start);
     RDTSC_START(cycles_start);
-    if(count>1){
-      hashset **sortedbitmaps = (hashset**) malloc(sizeof(hashset*) * count);
-      for (int i = 0; i < (int)count ; ++i) sortedbitmaps[i] = & bitmaps[i];
-      qsort (sortedbitmaps, count, sizeof(hashset *), hashset_size_compare);
-        hashset v (*sortedbitmaps[0]);
-        for (int i = 1; i < (int)count ; ++i) {
-            inplace_union(v, *sortedbitmaps[i]);
-        }
-        total_or = v.size();
-        free(sortedbitmaps);
+    if(count>1) {
+        const vector  ** allofthem = new const vector* [count];
+        for(int i = 0 ; i < (int) count; ++i) allofthem[i] = & bitmaps[i];
+        vector totalorbitmap = fast_logicalor(count, allofthem);
+        total_or = totalorbitmap.size();
+        delete[] allofthem;
     }
     RDTSC_FINAL(cycles_final);
     data[4] = cycles_final - cycles_start;
-    if(verbose) printf("Total sorted unions on %zu bitmaps took %" PRIu64 " cycles\n", count,
+    if(verbose) printf("Total heap unions on %zu bitmaps took %" PRIu64 " cycles\n", count,
                            cycles_final - cycles_start);
 
-    uint64_t quartcount;
-    STARTBEST(quartile_test_repetitions)
-    quartcount = 0;
+    RDTSC_START(cycles_start);
+    uint64_t quartcount = 0;
     for (size_t i = 0; i < count ; ++i) {
-      quartcount += (bitmaps[i].find(maxvalue/4) == bitmaps[i].end());
-      quartcount += (bitmaps[i].find(maxvalue/2) == bitmaps[i].end());
-      quartcount += (bitmaps[i].find(3*maxvalue/4) == bitmaps[i].end());
+      if ( std::binary_search(bitmaps[i].begin(),bitmaps[i].end(),maxvalue/4 ) )
+      	quartcount ++;
+      if ( std::binary_search(bitmaps[i].begin(),bitmaps[i].end(),maxvalue/2 ) )
+      	quartcount ++;
+      if ( std::binary_search(bitmaps[i].begin(),bitmaps[i].end(),3*maxvalue/4 ) )
+      	quartcount ++;
     }
-    ENDBEST(data[5])
+    RDTSC_FINAL(cycles_final);
+    data[5] = cycles_final - cycles_start;
 
     if(verbose) printf("Quartile queries on %zu bitmaps took %" PRIu64 " cycles\n", count,
-           data[5]);
+           cycles_final - cycles_start);
+
+    if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        hashset v;
-        difference(bitmaps[i], bitmaps[i + 1], v);
+        vector v;
+        std::set_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
         successive_andnot += v.size();
     }
     RDTSC_FINAL(cycles_final);
@@ -301,8 +307,8 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        hashset v;
-        symmetric_difference(bitmaps[i], bitmaps[i + 1], v);
+        vector v;
+        std::set_symmetric_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
         successive_xor += v.size();
     }
     RDTSC_FINAL(cycles_final);
@@ -313,7 +319,7 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     for (size_t i = 0; i < count; ++i) {
-        hashset & b = bitmaps[i];
+        vector & b = bitmaps[i];
         for(auto j = b.begin(); j != b.end() ; j++) {
             total_count++;
         }
@@ -325,11 +331,7 @@ int main(int argc, char **argv) {
     if(verbose) printf("Iterating over %zu bitmaps took %" PRIu64 " cycles\n", count,
            cycles_final - cycles_start);
 
-
-    if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
-
     assert(successive_xor + successive_and == successive_or);
-
 
     /**
     * and, or, andnot and xor cardinality
@@ -341,28 +343,28 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        successive_andcard += intersection_count(bitmaps[i], bitmaps[i + 1]);
+      std::set_intersection(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_andcard));
     }
     RDTSC_FINAL(cycles_final);
     data[9] = cycles_final - cycles_start;
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        successive_orcard += union_count(bitmaps[i], bitmaps[i + 1]);
+      std::set_union(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_orcard));
     }
     RDTSC_FINAL(cycles_final);
     data[10] = cycles_final - cycles_start;
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        successive_andnotcard += difference_count(bitmaps[i], bitmaps[i + 1]);
+      std::set_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_andnotcard));
     }
     RDTSC_FINAL(cycles_final);
     data[11] = cycles_final - cycles_start;
 
     RDTSC_START(cycles_start);
     for (int i = 0; i < (int)count - 1; ++i) {
-        successive_xorcard += symmetric_difference_count(bitmaps[i], bitmaps[i + 1]);
+      std::set_symmetric_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_xorcard));
     }
     RDTSC_FINAL(cycles_final);
     data[12] = cycles_final - cycles_start;
@@ -375,6 +377,7 @@ int main(int argc, char **argv) {
     /**
     * end and, or, andnot and xor cardinality
     */
+
     printf(" %20.4f %20.4f %20.4f\n",
       data[0]*25.0/totalcard,
       build_cycles*1.0/(totalcard*4),

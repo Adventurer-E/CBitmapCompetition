@@ -16,3 +16,6 @@
 [submodule "FastPFOR"]
 	path = FastPFOR
 	url = https://github.com/fast-pack/FastPFOR
+[submodule "chimp"]
+	path = chimp
+	url = https://github.com/panagiotisl/chimp

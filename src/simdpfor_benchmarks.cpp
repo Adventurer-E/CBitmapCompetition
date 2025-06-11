@@ -370,7 +370,7 @@ int main(int argc, char **argv) {
     assert(successive_xorcard == successive_xor);
     assert(successive_andnotcard == successive_andnot);
 
-    printf(" %20.2f %20.2f %20.2f\n",
+    printf(" %20.4f %20.4f %20.4f\n",
       data[0]*25.0/totalcard,
       build_cycles*1.0/(totalcard*4),
       data[8]*1.0/(totalcard*4)
