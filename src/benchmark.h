@@ -69,7 +69,7 @@ const int quartile_test_repetitions = 10;
         }                                                             \
         uint64_t S = (uint64_t)size;                                  \
         float cycle_per_op = (min_diff) / (float)S;                   \
-        printf(" %.2f cycles per operation", cycle_per_op);           \
+        printf(" %.4f cycles per operation", cycle_per_op);           \
         if (wrong_answer) printf(" [ERROR]");                         \
         printf("\n");                                                 \
         fflush(NULL);                                                 \
