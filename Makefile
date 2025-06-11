@@ -39,7 +39,7 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks  bitmagic_benchmarks ewah32_benchmarks ewah64_benchmarks stl_vector_benchmarks stl_hashset_benchmarks stl_vector_benchmarks_memtracked stl_hashset_benchmarks_memtracked bitset_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
+EXECUTABLES=wah32_benchmarks chimp_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks  bitmagic_benchmarks ewah32_benchmarks ewah64_benchmarks stl_vector_benchmarks stl_hashset_benchmarks stl_vector_benchmarks_memtracked stl_hashset_benchmarks_memtracked bitset_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
 
 all: $(EXECUTABLES)
 
@@ -106,6 +106,9 @@ stl_vector_benchmarks_memtracked: src/stl_vector_benchmarks.cpp src/memtrackinga
 
 stl_hashset_benchmarks_memtracked: src/stl_hashset_benchmarks.cpp src/memtrackingallocator.h
 	$(CXX) $(CXXFLAGS)  -o stl_hashset_benchmarks_memtracked ./src/stl_hashset_benchmarks.cpp -DMEMTRACKED
+
+chimp_benchmarks: src/chimp_benchmarks.cpp src/memtrackingallocator.h
+	$(CXX) $(CXXFLAGS)  -o chimp_benchmarks ./src/chimp_benchmarks.cpp
 
 bitset_benchmarks: src/bitset_benchmarks.c cbitset/include/bitset.h cbitset/src/bitset.c
 	$(CC) $(CFLAGS)  -o bitset_benchmarks ./src/bitset_benchmarks.c cbitset/src/bitset.c   -Icbitset/include
