@@ -39,7 +39,7 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks  bitmagic_benchmarks ewah32_benchmarks ewah64_benchmarks stl_vector_benchmarks stl_hashset_benchmarks stl_vector_benchmarks_memtracked stl_hashset_benchmarks_memtracked bitset_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
+EXECUTABLES=wah32_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks  bitmagic_benchmarks ewah32_benchmarks ewah64_benchmarks stl_vector_benchmarks stl_hashset_benchmarks stl_vector_benchmarks_memtracked stl_hashset_benchmarks_memtracked bitset_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks simdpfor_benchmarks gen
 
 all: $(EXECUTABLES)
 
@@ -110,7 +110,18 @@ stl_hashset_benchmarks_memtracked: src/stl_hashset_benchmarks.cpp src/memtrackin
 bitset_benchmarks: src/bitset_benchmarks.c cbitset/include/bitset.h cbitset/src/bitset.c
 	$(CC) $(CFLAGS)  -o bitset_benchmarks ./src/bitset_benchmarks.c cbitset/src/bitset.c   -Icbitset/include
 
+simdpfor_benchmarks: FastPFOR/src/inmemorybenchmark.cpp \
+FastPFOR/src/bitpacking.cpp FastPFOR/src/bitpackingaligned.cpp \
+FastPFOR/src/bitpackingunaligned.cpp FastPFOR/src/horizontalbitpacking.cpp \
+FastPFOR/src/simdunalignedbitpacking.cpp FastPFOR/src/codecfactory.cpp \
+FastPFOR/src/simdbitpacking.cpp FastPFOR/src/varintdecode.c \
+FastPFOR/src/streamvbyte.c
+	$(CXX) $(CXXFLAGS) -o simdpfor_benchmarks FastPFOR/src/inmemorybenchmark.cpp \
+	FastPFOR/src/bitpacking.cpp FastPFOR/src/bitpackingaligned.cpp \
+	FastPFOR/src/bitpackingunaligned.cpp FastPFOR/src/horizontalbitpacking.cpp \
+	FastPFOR/src/simdunalignedbitpacking.cpp FastPFOR/src/codecfactory.cpp \
+	FastPFOR/src/simdbitpacking.cpp FastPFOR/src/varintdecode.c \
+	FastPFOR/src/streamvbyte.c -IFastPFOR/headers
+
 clean:
 	rm -r -f   $(EXECUTABLES) src/roaring.c src/roaring.h src/roaring.hh bigtmp
-simdpfor_benchmarks: src/simdpfor_benchmarks.cpp
-	\$(CXX) \$(CXXFLAGS) -o simdpfor_benchmarks ./src/simdpfor_benchmarks.cpp FastPFOR/src/bitpacking.cpp FastPFOR/src/bitpackingaligned.cpp FastPFOR/src/bitpackingunaligned.cpp FastPFOR/src/horizontalbitpacking.cpp FastPFOR/src/simdunalignedbitpacking.cpp FastPFOR/src/codecfactory.cpp FastPFOR/src/simdbitpacking.cpp FastPFOR/src/varintdecode.c FastPFOR/src/streamvbyte.c -IFastPFOR/headers
