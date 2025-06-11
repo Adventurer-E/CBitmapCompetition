@@ -367,6 +367,9 @@ $ make test
                  2.23                 1.43                 2.63               149.06                13.71               497.06                  1.99                  2.66                     9.23                    0.83                  1.16                  1.03                  1.16
 ```
 
+Running `scripts/all.sh` now also writes a CSV file to `scripts/results.csv`
+containing the dataset name, test command, compression ratio, compression speed
+and decompression speed.
 
 ```bash
 $ ./scripts/big.sh
@@ -421,6 +424,7 @@ ences, successive symmetric differences
       37.83                    27.60                   18.91                 19.30                 18.90                 19.19
 ```
 
+`scripts/big.sh` also writes to `scripts/results.csv` using the large synthetic dataset.
 
 ## Usage
 
