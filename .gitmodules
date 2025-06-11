@@ -16,3 +16,6 @@
 [submodule "FastPFOR"]
 	path = FastPFOR
 	url = https://github.com/fast-pack/FastPFOR
+[submodule "ALP"]
+	path = ALP
+	url = https://github.com/cwida/ALP
