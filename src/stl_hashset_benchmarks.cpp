@@ -376,7 +376,7 @@ int main(int argc, char **argv) {
     * end and, or, andnot and xor cardinality
     */
     printf(" %20.2f %20.2f %20.2f\n",
-      data[0]*8.0/totalcard,
+      data[0]*25.0/totalcard,
       build_cycles*1.0/(totalcard*4),
       data[8]*1.0/(totalcard*4)
     );
