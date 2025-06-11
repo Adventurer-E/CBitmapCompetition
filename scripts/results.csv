@@ -1,41 +1,153 @@
 dataset,test,ratio,speed,decspeed
-census-income,bitset_benchmarks,17.70,1.32,1.43
-census-income,stl_vector_benchmarks,0.00,2.32,0.00
-census-income,stl_vector_benchmarks_memtracked,100.00,2.32,0.00
-census-income,stl_hashset_benchmarks_memtracked,608.21,65.20,7.53
-census-income,stl_hashset_benchmarks,0.00,63.09,12.86
-census-income,bitmagic_benchmarks,24.24,2.92,4.24
-census-income,bitmagic_benchmarks -r,13.95,5.47,4.05
-census-income,slow_roaring_benchmarks -r,8.11,2.34,1.26
-census-income,malloced_roaring_benchmarks -r,8.19,2.30,1.45
-census-income,roaring_benchmarks -r,8.11,2.15,1.37
-census-income,roaring_benchmarks -c -r,8.11,2.14,1.36
+census-income,bitset_benchmarks,17.7020,1.2714,1.4589
+census-income,stl_vector_benchmarks,0.0000,2.3208,0.0000
+census-income,stl_vector_benchmarks_memtracked,100.0000,2.3104,0.0001
+census-income,stl_hashset_benchmarks_memtracked,608.2095,62.4083,7.7808
+census-income,stl_hashset_benchmarks,0.0000,66.7031,13.1504
+census-income,bitmagic_benchmarks,24.2424,2.9877,4.3004
+census-income,bitmagic_benchmarks -r,13.9481,5.5673,4.0756
+census-income,slow_roaring_benchmarks -r,8.1143,2.3124,1.2634
+census-income,malloced_roaring_benchmarks -r,8.1902,2.2820,1.3754
+census-income,roaring_benchmarks -r,8.11,2.15,1.38
+census-income,roaring_benchmarks -c -r,8.11,2.12,1.37
 census-income,roaring_benchmarks,8.57,2.08,1.36
-census-income,roaring_benchmarks -c,8.57,2.08,1.36
-census-income,ewah32_benchmarks,10.29,2.39,3.29
-census-income,ewah64_benchmarks,12.06,2.42,3.29
-census-income,wah32_benchmarks,10.54,4.36,1.68
-census-income,concise_benchmarks,9.18,4.24,1.59
-census-income,alp_benchmarks,36.93,0.08,0.07
-census-income_srt,bitset_benchmarks,18.79,1.37,1.33
-census-income_srt,stl_vector_benchmarks,0.00,2.31,0.00
-census-income_srt,stl_vector_benchmarks_memtracked,100.00,2.22,0.00
-census-income_srt,stl_hashset_benchmarks_memtracked,609.44,55.65,3.65
-census-income_srt,stl_hashset_benchmarks,0.00,57.05,3.57
-census-income_srt,bitmagic_benchmarks,24.95,2.98,2.24
-census-income_srt,bitmagic_benchmarks -r,5.90,9.57,1.57
-census-income_srt,slow_roaring_benchmarks -r,1.87,2.35,1.25
-census-income_srt,malloced_roaring_benchmarks -r,1.95,2.37,1.26
-census-income_srt,roaring_benchmarks -r,1.87,2.21,1.25
-census-income_srt,roaring_benchmarks -c -r,1.87,2.22,1.25
-census-income_srt,roaring_benchmarks,9.33,2.15,1.32
-census-income_srt,roaring_benchmarks -c,9.33,2.15,1.32
-census-income_srt,ewah32_benchmarks,2.00,1.91,2.34
-census-income_srt,ewah64_benchmarks,2.80,2.03,2.38
-census-income_srt,wah32_benchmarks,2.04,3.67,1.87
-census-income_srt,concise_benchmarks,1.72,3.66,1.40
-census-income_srt,alp_benchmarks,34.16,0.08,0.06
-census1881,bitset_benchmarks,1636.06,10.69,7.73
-census1881,stl_vector_benchmarks,0.00,2.32,0.00
-census1881,stl_vector_benchmarks_memtracked,100.00,2.25,0.00
-census1881,stl_hashset_benchmarks_memtracked,608.57,95.04,23.66
+census-income,roaring_benchmarks -c,8.57,2.09,1.38
+census-income,ewah32_benchmarks,10.2879,2.3413,3.2204
+census-income,ewah64_benchmarks,12.0565,2.3500,3.1891
+census-income,wah32_benchmarks,10.5399,4.2727,1.6636
+census-income,concise_benchmarks,9.1770,4.2612,1.5731
+census-income,alp_benchmarks,36.9306,0.0806,0.0649
+census-income,chimp_benchmarks,0.0000,2.3117,0.0000
+census-income_srt,bitset_benchmarks,18.7937,1.3642,1.3309
+census-income_srt,stl_vector_benchmarks,0.0000,2.3337,0.0000
+census-income_srt,stl_vector_benchmarks_memtracked,100.0000,2.3203,0.0001
+census-income_srt,stl_hashset_benchmarks_memtracked,609.4398,57.4812,3.5643
+census-income_srt,stl_hashset_benchmarks,0.0000,56.1244,24.5897
+census-income_srt,bitmagic_benchmarks,24.9533,3.1632,2.3432
+census-income_srt,bitmagic_benchmarks -r,5.8988,10.0711,1.5967
+census-income_srt,slow_roaring_benchmarks -r,1.8702,2.4730,1.2640
+census-income_srt,malloced_roaring_benchmarks -r,1.9505,2.4242,1.2565
+census-income_srt,roaring_benchmarks -r,1.87,2.23,1.25
+census-income_srt,roaring_benchmarks -c -r,1.87,2.21,1.24
+census-income_srt,roaring_benchmarks,9.33,2.16,1.33
+census-income_srt,roaring_benchmarks -c,9.33,2.15,1.33
+census-income_srt,ewah32_benchmarks,2.0038,1.9282,2.3588
+census-income_srt,ewah64_benchmarks,2.7980,2.0552,2.3865
+census-income_srt,wah32_benchmarks,2.0363,3.6782,1.3918
+census-income_srt,concise_benchmarks,1.7175,3.6769,1.3324
+census-income_srt,alp_benchmarks,34.1632,0.0758,0.0632
+census-income_srt,chimp_benchmarks,0.0000,2.3983,0.0000
+census1881,bitset_benchmarks,1636.0582,11.0484,8.2607
+census1881,stl_vector_benchmarks,0.0000,2.2630,0.0002
+census1881,stl_vector_benchmarks_memtracked,100.0000,2.2001,0.0002
+census1881,stl_hashset_benchmarks_memtracked,608.5741,92.1603,23.1558
+census1881,stl_hashset_benchmarks,0.0000,93.5157,24.9225
+census1881,bitmagic_benchmarks,309.1536,9.0556,16.6819
+census1881,bitmagic_benchmarks -r,144.7643,21.1787,13.9387
+census1881,slow_roaring_benchmarks -r,47.1168,3.2521,1.2539
+census1881,malloced_roaring_benchmarks -r,47.9739,4.6431,1.2903
+census1881,roaring_benchmarks -r,47.12,3.20,1.26
+census1881,roaring_benchmarks -c -r,47.12,3.40,1.28
+census1881,roaring_benchmarks,49.92,2.76,1.33
+census1881,roaring_benchmarks -c,49.92,2.70,1.27
+census1881,ewah32_benchmarks,105.5262,7.7135,6.8480
+census1881,ewah64_benchmarks,136.7920,7.9971,6.5044
+census1881,wah32_benchmarks,107.2651,14.4791,4.8717
+census1881,concise_benchmarks,79.8737,13.7873,5.0824
+census1881,alp_benchmarks,53.9263,0.1049,0.0965
+census1881,chimp_benchmarks,0.0000,2.3089,0.0002
+census1881_srt,bitset_benchmarks,2775.2177,18.5419,8.5552
+census1881_srt,stl_vector_benchmarks,0.0000,2.4137,0.0003
+census1881_srt,stl_vector_benchmarks_memtracked,100.0000,2.2357,0.0003
+census1881_srt,stl_hashset_benchmarks_memtracked,609.1658,59.5933,5.6978
+census1881_srt,stl_hashset_benchmarks,0.0000,59.5593,8.6709
+census1881_srt,bitmagic_benchmarks,778.9481,20.6165,6.3783
+census1881_srt,bitmagic_benchmarks -r,50.0099,11.4442,2.3247
+census1881_srt,slow_roaring_benchmarks -r,6.7574,3.4342,1.4055
+census1881_srt,malloced_roaring_benchmarks -r,8.6547,5.7043,1.4146
+census1881_srt,roaring_benchmarks -r,6.76,3.28,1.42
+census1881_srt,roaring_benchmarks -c -r,6.76,3.36,1.44
+census1881_srt,roaring_benchmarks,19.03,2.54,1.31
+census1881_srt,roaring_benchmarks -c,19.03,2.58,1.31
+census1881_srt,ewah32_benchmarks,9.0972,2.3328,2.8166
+census1881_srt,ewah64_benchmarks,14.1861,2.5113,2.8194
+census1881_srt,wah32_benchmarks,9.2098,4.3851,1.8042
+census1881_srt,concise_benchmarks,7.7518,4.3958,1.6777
+census1881_srt,alp_benchmarks,47.2502,0.1157,0.1040
+census1881_srt,chimp_benchmarks,0.0000,2.2512,0.0003
+weather_sept_85,bitset_benchmarks,47.6982,1.5446,1.8114
+weather_sept_85,stl_vector_benchmarks,0.0000,2.4899,0.0000
+weather_sept_85,stl_vector_benchmarks_memtracked,100.0000,2.3122,0.0000
+weather_sept_85,stl_hashset_benchmarks_memtracked,609.1530,75.2467,13.3014
+weather_sept_85,stl_hashset_benchmarks,0.0000,73.0753,13.0334
+weather_sept_85,bitmagic_benchmarks,46.2626,3.5106,6.9113
+weather_sept_85,bitmagic_benchmarks -r,27.4748,6.4876,6.2281
+weather_sept_85,slow_roaring_benchmarks -r,16.8150,2.6085,1.3546
+weather_sept_85,malloced_roaring_benchmarks -r,16.9329,2.6377,1.4560
+weather_sept_85,roaring_benchmarks -r,16.81,2.37,1.46
+weather_sept_85,roaring_benchmarks -c -r,16.81,3.47,1.52
+weather_sept_85,roaring_benchmarks,17.00,2.24,1.45
+weather_sept_85,roaring_benchmarks -c,17.00,2.26,1.45
+weather_sept_85,ewah32_benchmarks,20.8472,3.1243,3.8676
+weather_sept_85,ewah64_benchmarks,24.5836,2.9693,3.6024
+weather_sept_85,wah32_benchmarks,21.3268,5.5742,2.1568
+weather_sept_85,concise_benchmarks,18.3823,5.5317,2.1107
+weather_sept_85,alp_benchmarks,39.2513,0.0800,0.0580
+weather_sept_85,chimp_benchmarks,0.0000,2.4868,0.0000
+weather_sept_85_srt,bitset_benchmarks,35.6013,1.4760,1.3931
+weather_sept_85_srt,stl_vector_benchmarks,0.0000,2.5902,0.0000
+weather_sept_85_srt,stl_vector_benchmarks_memtracked,100.0000,2.2523,0.0000
+weather_sept_85_srt,stl_hashset_benchmarks_memtracked,609.6084,62.4322,5.1804
+weather_sept_85_srt,stl_hashset_benchmarks,0.0000,59.3948,3.6887
+weather_sept_85_srt,bitmagic_benchmarks,28.2173,3.0406,2.1711
+weather_sept_85_srt,bitmagic_benchmarks -r,3.0000,9.5398,1.5351
+weather_sept_85_srt,slow_roaring_benchmarks -r,1.0628,2.4199,1.2312
+weather_sept_85_srt,malloced_roaring_benchmarks -r,1.1335,2.4523,1.2383
+weather_sept_85_srt,roaring_benchmarks -r,1.06,2.25,1.23
+weather_sept_85_srt,roaring_benchmarks -c -r,1.06,2.29,1.24
+weather_sept_85_srt,roaring_benchmarks,10.14,2.14,1.35
+weather_sept_85_srt,roaring_benchmarks -c,10.14,2.27,1.35
+weather_sept_85_srt,ewah32_benchmarks,1.6798,1.9048,2.3400
+weather_sept_85_srt,ewah64_benchmarks,2.6862,2.0706,2.3867
+weather_sept_85_srt,wah32_benchmarks,1.6963,5.4833,1.3847
+weather_sept_85_srt,concise_benchmarks,1.3582,3.6999,1.3078
+weather_sept_85_srt,alp_benchmarks,34.1194,0.0617,0.0679
+weather_sept_85_srt,chimp_benchmarks,0.0000,2.6443,0.0000
+wikileaks-noquotes,bitset_benchmarks,2485.9349,22.8551,8.9487
+wikileaks-noquotes,stl_vector_benchmarks,0.0000,2.5120,0.0007
+wikileaks-noquotes,stl_vector_benchmarks_memtracked,100.0000,2.3804,0.0008
+wikileaks-noquotes,stl_hashset_benchmarks_memtracked,608.3841,65.1718,11.6611
+wikileaks-noquotes,stl_hashset_benchmarks,0.0000,64.2065,12.1264
+wikileaks-noquotes,bitmagic_benchmarks,1445.4126,35.7797,11.6104
+wikileaks-noquotes,bitmagic_benchmarks -r,93.2440,16.6374,2.5145
+wikileaks-noquotes,slow_roaring_benchmarks -r,18.4073,6.1188,1.9742
+wikileaks-noquotes,malloced_roaring_benchmarks -r,21.9876,13.4382,2.0705
+wikileaks-noquotes,roaring_benchmarks -r,18.41,6.35,1.92
+wikileaks-noquotes,roaring_benchmarks -c -r,18.41,6.03,1.92
+wikileaks-noquotes,roaring_benchmarks,51.52,3.74,1.29
+wikileaks-noquotes,roaring_benchmarks -c,51.52,3.84,1.31
+wikileaks-noquotes,ewah32_benchmarks,33.8545,4.0158,4.3722
+wikileaks-noquotes,ewah64_benchmarks,60.6621,4.6803,4.3223
+wikileaks-noquotes,wah32_benchmarks,34.0292,6.7872,2.7449
+wikileaks-noquotes,concise_benchmarks,32.0419,6.8222,2.6340
+wikileaks-noquotes,alp_benchmarks,73.7114,0.1991,0.1728
+wikileaks-noquotes,chimp_benchmarks,0.0000,2.3724,0.0006
+wikileaks-noquotes_srt,bitset_benchmarks,2023.5170,26.6194,6.0415
+wikileaks-noquotes_srt,stl_vector_benchmarks,0.0000,2.7594,0.0006
+wikileaks-noquotes_srt,stl_vector_benchmarks_memtracked,100.0000,2.5187,0.0006
+wikileaks-noquotes_srt,stl_hashset_benchmarks_memtracked,609.9412,59.2056,3.7500
+wikileaks-noquotes_srt,stl_hashset_benchmarks,0.0000,58.3536,3.4681
+wikileaks-noquotes_srt,bitmagic_benchmarks,1156.4756,29.5617,7.7700
+wikileaks-noquotes_srt,bitmagic_benchmarks -r,74.9688,12.0279,1.9853
+wikileaks-noquotes_srt,slow_roaring_benchmarks -r,5.0947,4.6114,1.3633
+wikileaks-noquotes_srt,malloced_roaring_benchmarks -r,8.0546,9.9289,1.4590
+wikileaks-noquotes_srt,roaring_benchmarks -r,5.09,4.21,1.33
+wikileaks-noquotes_srt,roaring_benchmarks -c -r,5.09,4.32,1.35
+wikileaks-noquotes_srt,roaring_benchmarks,33.36,3.83,1.41
+wikileaks-noquotes_srt,roaring_benchmarks -c,33.36,3.77,1.49
+wikileaks-noquotes_srt,ewah32_benchmarks,8.2344,2.3655,2.8355
+wikileaks-noquotes_srt,ewah64_benchmarks,14.5486,2.6010,2.8309
+wikileaks-noquotes_srt,wah32_benchmarks,8.3493,4.5263,1.5933
+wikileaks-noquotes_srt,concise_benchmarks,6.9785,4.1820,1.6739
+wikileaks-noquotes_srt,alp_benchmarks,56.1888,0.1767,0.1170
+wikileaks-noquotes_srt,chimp_benchmarks,0.0000,2.4451,0.0006
