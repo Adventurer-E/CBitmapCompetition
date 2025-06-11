@@ -6,6 +6,7 @@
 #include <cassert>
 #include <unordered_set>
 #include <algorithm>
+#include <cstdint>
 
 using namespace std;
 

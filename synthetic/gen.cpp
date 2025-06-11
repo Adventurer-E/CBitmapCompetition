@@ -8,6 +8,7 @@
 #include <getopt.h>
 #include <string.h>
 #include <iostream>
+#include <cstdint>
 
 #include "anh_moffat_clustered.h"
 void printusage(const char *command) {
