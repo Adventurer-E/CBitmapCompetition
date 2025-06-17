@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     int c;
     const char *extension = ".txt";
     bool verbose = false;
-    uint64_t data[15];
+    uint64_t data[14];
     while ((c = getopt(argc, argv, "ve:h")) != -1) switch (c) {
         case 'e':
             extension = optarg;
@@ -229,19 +229,7 @@ int main(int argc, char **argv) {
     if(verbose) printf("Decompressing %zu bitmaps took %" PRIu64 " cycles\n", count,
            cycles_final - cycles_start);
 
-    RDTSC_START(cycles_start);
-    uint64_t batch_count = 0;
-    for (size_t i = 0; i < count; ++i) {
-        ConciseSet<true> & b = bitmaps[i];
-        std::vector<uint32_t> tmp;
-        for(auto j = b.begin(); j != b.end() ; ++j) {
-            tmp.push_back(*j);
-        }
-        batch_count += tmp.size();
-    }
-    RDTSC_FINAL(cycles_final);
-    data[14] = cycles_final - cycles_start;
-    assert(batch_count == totalcard);
+    /* no batch decompression timing */
 
     if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
 
@@ -292,12 +280,11 @@ int main(int argc, char **argv) {
     * end and, or, andnot and xor cardinality
     */
 
-    printf(" %20.4f %20.4f %20.4f %20.4f %20.4f\n",
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
       data[0]*25.0/totalcard,
       build_cycles*1.0/(totalcard*4),
-      data[8]*1.0/(totalcard*4),
       data[13]*1.0/(totalcard*4),
-      data[14]*1.0/(totalcard*4)
+      data[8]*1.0/(totalcard*4)
     );
 
 

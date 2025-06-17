@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     bool verbose = false;
     bool copyonwrite = false;
     char *extension = ".txt";
-    uint64_t data[15];
+    uint64_t data[14];
     while ((c = getopt(argc, argv, "cvre:h")) != -1) switch (c) {
         case 'e':
             extension = optarg;
@@ -258,19 +258,7 @@ int main(int argc, char **argv) {
 
     assert(totalcard == total_count);
 
-    RDTSC_START(cycles_start);
-    uint64_t batch_count = 0;
-    for (size_t i = 0; i < count; ++i) {
-        roaring_bitmap_t *ra = bitmaps[i];
-        uint32_t card = roaring_bitmap_get_cardinality(ra);
-        uint32_t *out = (uint32_t *)malloc(sizeof(uint32_t) * card);
-        roaring_bitmap_to_uint32_array(ra, out);
-        batch_count += card;
-        free(out);
-    }
-    RDTSC_FINAL(cycles_final);
-    data[14] = cycles_final - cycles_start;
-    assert(batch_count == totalcard);
+    /* no batch decompression timing */
 
     if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
 
@@ -324,12 +312,11 @@ int main(int argc, char **argv) {
     * and totalcard is the number of integers across all input files.
     */
 
-    printf(" %20.4f %20.4f %20.4f %20.4f %20.4f\n",
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
            data[0]*25.0/totalcard,
            build_cycles*1.0/(totalcard*4),
-           data[8]*1.0/(totalcard*4),
            data[13]*1.0/(totalcard*4),
-           data[14]*1.0/(totalcard*4)
+           data[8]*1.0/(totalcard*4)
           );
 
     for (int i = 0; i < (int)count; ++i) {

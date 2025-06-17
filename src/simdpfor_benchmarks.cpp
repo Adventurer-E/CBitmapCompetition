@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
     int c;
     const char *extension = ".txt";
     bool verbose = false;
-    uint64_t data[15];
+    uint64_t data[14];
     while ((c = getopt(argc, argv, "ve:h")) != -1) switch (c) {
         case 'e':
             extension = optarg;
@@ -216,7 +216,6 @@ int main(int argc, char **argv) {
                                                  *codec);
     RDTSC_FINAL(cycles_final);
     data[8] = cycles_final - cycles_start;
-    data[14] = data[8];
 
     uint64_t total_count = 0;
     for (size_t i = 0; i < count; ++i) total_count += bitmaps[i].size();
@@ -378,12 +377,11 @@ int main(int argc, char **argv) {
     assert(successive_xorcard == successive_xor);
     assert(successive_andnotcard == successive_andnot);
 
-    printf(" %20.4f %20.4f %20.4f %20.4f %20.4f\n",
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
       data[0]*25.0/totalcard,
       build_cycles*1.0/(totalcard*4),
-      data[8]*1.0/(totalcard*4),
       data[13]*1.0/(totalcard*4),
-      data[14]*1.0/(totalcard*4)
+      data[8]*1.0/(totalcard*4)
     );
 
     for (int i = 0; i < (int)count; ++i) {
