@@ -26,3 +26,8 @@
 *.exe
 *.out
 *.app
+*_benchmarks
+*_benchmarks_memtracked
+gen
+
+.DS_Store
