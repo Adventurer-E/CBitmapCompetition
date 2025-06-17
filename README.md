@@ -440,6 +440,9 @@ This needs to be done once at the beginning, and whenever the project has update
 make
 make test
 ```
+Running `make test` executes both integer benchmark scripts and the
+`scripts/float.sh` script on any `.csv.gz` datasets placed under the
+`datasets` directory.
 
 There are additional tests. To benchmark with a large synthetic dataset, do :
 ```bash

@@ -45,6 +45,7 @@ all: $(EXECUTABLES)
 
 test:
 	./scripts/all.sh
+	./scripts/float.sh
 
 bigtest:
 	./scripts/big.sh
