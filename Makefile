@@ -39,7 +39,7 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks chimp_benchmarks brotli_benchmarks zstd_benchmarks lz4_benchmarks snappy_benchmarks xz_benchmarks gorilla_benchmarks fpc_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks alp_benchmakrs gen
+EXECUTABLES=wah32_benchmarks chimp_benchmarks zstd_benchmarks lz4_benchmarks snappy_benchmarks gorilla_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks alp_benchmarks gen
 
 all: $(EXECUTABLES)
 
@@ -93,8 +93,6 @@ ewah64_benchmarks: src/ewah64_benchmarks.cpp
 
 chimp_benchmarks: src/chimp_benchmarks.cpp src/memtrackingallocator.h
 	$(CXX) $(CXXFLAGS)  -o chimp_benchmarks ./src/chimp_benchmarks.cpp
-brotli_benchmarks: src/brotli_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o brotli_benchmarks ./src/brotli_benchmarks.cpp -lbrotlienc -lbrotlidec -lbrotlicommon
 zstd_benchmarks: src/zstd_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -o zstd_benchmarks ./src/zstd_benchmarks.cpp -lzstd
 lz4_benchmarks: src/lz4_benchmarks.cpp
@@ -104,11 +102,6 @@ snappy_benchmarks: src/snappy_benchmarks.cpp
 gorilla_benchmarks: src/gorilla_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -o gorilla_benchmarks ./src/gorilla_benchmarks.cpp
 
-fpc_benchmarks: src/fpc_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o fpc_benchmarks ./src/fpc_benchmarks.cpp
-
-xz_benchmarks: src/xz_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o xz_benchmarks ./src/xz_benchmarks.cpp -llzma
   
 alp_benchmarks: src/alp_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -U__AVX512F__ -std=c++17 -o alp_benchmarks ./src/alp_benchmarks.cpp ALP/src/fastlanes_ffor.cpp ALP/src/fastlanes_unffor.cpp ALP/src/fastlanes_generated_ffor.cpp ALP/src/fastlanes_generated_unffor.cpp ALP/src/falp.cpp -IALP/include
