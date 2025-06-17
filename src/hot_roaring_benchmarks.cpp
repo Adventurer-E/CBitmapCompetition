@@ -1,10 +1,19 @@
-#define __STDC_FORMAT_MACROS 1
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
-
+#endif
+#define __STDC_FORMAT_MACROS 1
 #include <inttypes.h>
+#include <iostream>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "benchmark.h"
 #include "numbersfromtextfiles.h"
-#include "roaring.c"
+#ifdef __cplusplus
+}
+#endif
+#include "roaring.cpp"
 
 bool roaring_iterator_increment(uint32_t value, void *param) {
   size_t count;
@@ -30,7 +39,8 @@ static roaring_bitmap_t **create_all_bitmaps(size_t *howmany,
 #ifdef RECORD_MALLOCS
   size_t totalmalloced = 0;
 #endif
-  roaring_bitmap_t **answer = malloc(sizeof(roaring_bitmap_t *) * count);
+  roaring_bitmap_t **answer =
+      (roaring_bitmap_t **)malloc(sizeof(roaring_bitmap_t *) * count);
 #ifdef RECORD_MALLOCS
   size_t bef = malloced_memory_usage;
 #endif
@@ -78,8 +88,8 @@ int main(int argc, char **argv) {
   bool runoptimize = false;
   bool verbose = false;
   bool copyonwrite = false;
-  char *extension = ".txt";
-  char *mode = "none specified";
+  const char *extension = ".txt";
+  const char *mode = "none specified";
   uint64_t cycles_start = 0, cycles_final = 0;
 
   RDTSC_START(cycles_start);

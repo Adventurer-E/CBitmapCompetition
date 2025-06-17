@@ -500,8 +500,8 @@ Then you can copy the current ``Makefile`` to a file named  ``makefile`` (it wil
 by the following:
 
 ```
-malloced_roaring_benchmarks : src/roaring.c src/roaring_benchmarks.c
-	$(CC) $(CFLAGS) -I./dmalloc-5.5.2/ -o malloced_roaring_benchmarks src/roaring_benchmarks.c -DDMALLOC -DDMALLOC_FUNC_CHECK -L./dmalloc-5.5.2/ -ldmalloc ;
+malloced_roaring_benchmarks : src/roaring.cpp src/roaring_benchmarks.cpp
+        $(CXX) $(CXXFLAGS) -I./dmalloc-5.5.2/ -o malloced_roaring_benchmarks src/roaring_benchmarks.cpp -DDMALLOC -DDMALLOC_FUNC_CHECK -L./dmalloc-5.5.2/ -ldmalloc ;
 	@echo ''
 	@echo '   Note malloced_roaring_benchmarks is linked with ./dmalloc-5.5.2/libdmalloc.a' ;
 	@echo '   to generate a logfile when running malloced_roaring_benchmarks quixk example:' ;

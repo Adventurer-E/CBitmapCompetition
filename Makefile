@@ -55,28 +55,28 @@ hottest:
 
 
 
-src/roaring.c :
-	(cd src && exec ../CRoaring/amalgamation.sh && rm almagamation_demo.c && rm almagamation_demo.cpp)
+src/roaring.cpp :
+	(cd src && exec ../CRoaring/amalgamation.sh && rm almagamation_demo.c && rm almagamation_demo.cpp && mv roaring.c roaring.cpp)
 
 gen : synthetic/anh_moffat_clustered.h synthetic/gen.cpp
 	$(CXX) $(CXXFLAGS) -o gen synthetic/gen.cpp -Isynthetic
 
-roaring_benchmarks : src/roaring.c src/roaring_benchmarks.c
-	$(CC) $(CFLAGS) -o roaring_benchmarks src/roaring_benchmarks.c
+roaring_benchmarks : src/roaring.cpp src/roaring_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -o roaring_benchmarks src/roaring_benchmarks.cpp
 
 
-hot_roaring_benchmarks : src/roaring.c src/hot_roaring_benchmarks.c
-	$(CC) $(CFLAGS)  -ggdb -o hot_roaring_benchmarks src/hot_roaring_benchmarks.c
+hot_roaring_benchmarks : src/roaring.cpp src/hot_roaring_benchmarks.cpp
+	$(CXX) $(CXXFLAGS)  -ggdb -o hot_roaring_benchmarks src/hot_roaring_benchmarks.cpp
 
-malloced_roaring_benchmarks : src/roaring.c src/roaring_benchmarks.c
-	$(CC) $(CFLAGS) -o malloced_roaring_benchmarks src/roaring_benchmarks.c -DRECORD_MALLOCS
+malloced_roaring_benchmarks : src/roaring.cpp src/roaring_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -o malloced_roaring_benchmarks src/roaring_benchmarks.cpp -DRECORD_MALLOCS
 
 
-slow_roaring_benchmarks : src/roaring.c src/roaring_benchmarks.c
-	$(CC) $(CFLAGS) -DDISABLE_X64 -o slow_roaring_benchmarks src/roaring_benchmarks.c
+slow_roaring_benchmarks : src/roaring.cpp src/roaring_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -DDISABLE_X64 -o slow_roaring_benchmarks src/roaring_benchmarks.cpp
 
-hot_slow_roaring_benchmarks : src/roaring.c src/hot_roaring_benchmarks.c
-	$(CC) $(CFLAGS)   -ggdb  -DDISABLE_X64 -o hot_slow_roaring_benchmarks src/hot_roaring_benchmarks.c
+hot_slow_roaring_benchmarks : src/roaring.cpp src/hot_roaring_benchmarks.cpp
+	$(CXX) $(CXXFLAGS)   -ggdb  -DDISABLE_X64 -o hot_slow_roaring_benchmarks src/hot_roaring_benchmarks.cpp
 
 
 ewah32_benchmarks: src/ewah32_benchmarks.cpp

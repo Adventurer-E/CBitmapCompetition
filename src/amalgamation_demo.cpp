@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "roaring.hh"
-#include "roaring.c"
+#include "roaring.cpp"
 int main() {
   Roaring r1;
   for (uint32_t i = 100; i < 1000; i++) {
