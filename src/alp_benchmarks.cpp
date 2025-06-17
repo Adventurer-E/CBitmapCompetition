@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+#include <vector>
 
 #include "benchmark.h"
 #include "numbersfromtextfiles.h"
@@ -18,24 +19,23 @@ static void printusage(char *command) {
     printf("the -v flag turns on verbose mode\n");
 }
 
-static inline uint8_t bits_required(uint32_t x) {
-    if(x==0) return 1;
-    return 32 - __builtin_clz(x);
-}
-
 int main(int argc, char **argv) {
-    bool verbose = false;
-    char *extension = ".txt";
     int c;
-    while ((c = getopt(argc, argv, "v")) != -1) {
+    const char *extension = ".txt";
+    bool verbose = false;
+    while ((c = getopt(argc, argv, "ve:h")) != -1) {
         switch (c) {
+        case 'e':
+            extension = optarg;
+            break;
         case 'v':
             verbose = true;
             break;
-        case '?':
-        default:
+        case 'h':
             printusage(argv[0]);
             return 0;
+        default:
+            abort();
         }
     }
     if (optind >= argc) {
@@ -56,6 +56,7 @@ int main(int argc, char **argv) {
 
     uint64_t build_cycles = 0;
     uint64_t iter_cycles = 0;
+    uint64_t insert_cycles = 0;
     double totalsize = 0;
 
     double *input_buf = (double*)malloc(sizeof(double)*1024);
@@ -68,6 +69,31 @@ int main(int argc, char **argv) {
     int64_t *base = (int64_t*)malloc(sizeof(int64_t));
     double *decoded = (double*)malloc(sizeof(double)*1024);
     double *sample = (double*)malloc(sizeof(double)*1024);
+
+    /* measure incremental insertion speed */
+    for(size_t i=0;i<count;i++) {
+        uint32_t *vals = numbers[i];
+        size_t n = howmany[i];
+        size_t pos = 0;
+        uint64_t start,end;
+        RDTSC_START(start);
+        while(pos < n) {
+            size_t chunk = n - pos;
+            if(chunk > 1024) chunk = 1024;
+            for(size_t j=0;j<chunk;j++) input_buf[j] = (double)vals[pos+j];
+            for(size_t j=chunk;j<1024;j++) input_buf[j] = input_buf[chunk-1];
+
+            alp::state<double> stt;
+            alp::encoder<double>::init(input_buf, 0, chunk, sample, stt);
+            alp::encoder<double>::encode(input_buf, exceptions, exc_pos, exc_count, encoded, stt);
+            alp::encoder<double>::analyze_ffor(encoded, stt.bit_width, base);
+            ffor::ffor(encoded, ffor_buf, stt.bit_width, base);
+
+            pos += chunk;
+        }
+        RDTSC_FINAL(end);
+        insert_cycles += end - start;
+    }
 
     for(size_t i=0;i<count;i++) {
         uint32_t *vals = numbers[i];
@@ -105,6 +131,7 @@ int main(int argc, char **argv) {
 
             pos += chunk;
         }
+        if(verbose) fprintf(stderr, "processed set %zu\n", i);
     }
 
     free(input_buf);
@@ -124,9 +151,10 @@ int main(int argc, char **argv) {
     free(numbers);
     free(howmany);
 
-    printf(" %20.4f %20.4f %20.4f\n",
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
            totalsize/totalcard,
            build_cycles*1.0/totalcard,
+           insert_cycles*1.0/totalcard,
            iter_cycles*1.0/totalcard);
     return 0;
 }
