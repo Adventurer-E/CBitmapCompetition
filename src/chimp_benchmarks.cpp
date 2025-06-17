@@ -256,10 +256,10 @@ int main(int argc, char **argv) {
     free(numbers); free(howmany);
 
     printf(" %20.4f %20.4f %20.4f %20.4f\n",
-           totalsize*25.0/totalcard,
-           build_cycles*1.0/(totalcard*4),
-           insert_cycles*1.0/(totalcard*4),
-           iter_cycles*1.0/(totalcard*4));
+           totalsize*8.0/totalcard,
+           build_cycles*1.0/totalcard,
+           insert_cycles*1.0/totalcard,
+           iter_cycles*1.0/totalcard);
     return 0;
 }
 
