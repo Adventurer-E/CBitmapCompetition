@@ -39,7 +39,7 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks chimp_benchmarks zstd_benchmarks lz4_benchmarks snappy_benchmarks gorilla_benchmarks fpc_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks alp_benchmarks gen
+EXECUTABLES=wah32_benchmarks chimp_benchmarks zstd_benchmarks lz4_benchmarks snappy_benchmarks gorilla_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks alp_benchmarks gen
 
 all: $(EXECUTABLES)
 
@@ -102,8 +102,6 @@ snappy_benchmarks: src/snappy_benchmarks.cpp
 gorilla_benchmarks: src/gorilla_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -o gorilla_benchmarks ./src/gorilla_benchmarks.cpp
 
-fpc_benchmarks: src/fpc_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o fpc_benchmarks ./src/fpc_benchmarks.cpp
   
 alp_benchmarks: src/alp_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -U__AVX512F__ -std=c++17 -o alp_benchmarks ./src/alp_benchmarks.cpp ALP/src/fastlanes_ffor.cpp ALP/src/fastlanes_unffor.cpp ALP/src/fastlanes_generated_ffor.cpp ALP/src/fastlanes_generated_unffor.cpp ALP/src/falp.cpp -IALP/include
