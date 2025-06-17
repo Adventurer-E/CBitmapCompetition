@@ -39,7 +39,7 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks chimp_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks  ewah32_benchmarks ewah64_benchmarks stl_vector_benchmarks stl_vector_benchmarks_memtracked malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
+EXECUTABLES=wah32_benchmarks chimp_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
 
 all: $(EXECUTABLES)
 
@@ -90,14 +90,6 @@ concise_benchmarks: src/concise_benchmarks.cpp
 
 ewah64_benchmarks: src/ewah64_benchmarks.cpp
 	$(CXX) $(CXXFLAGS)  -o ewah64_benchmarks ./src/ewah64_benchmarks.cpp -IEWAHBoolArray/headers
-
-stl_vector_benchmarks: src/stl_vector_benchmarks.cpp src/memtrackingallocator.h
-	$(CXX) $(CXXFLAGS)  -o stl_vector_benchmarks ./src/stl_vector_benchmarks.cpp
-
-
-
-stl_vector_benchmarks_memtracked: src/stl_vector_benchmarks.cpp src/memtrackingallocator.h
-	$(CXX) $(CXXFLAGS)  -o stl_vector_benchmarks_memtracked ./src/stl_vector_benchmarks.cpp -DMEMTRACKED
 
 chimp_benchmarks: src/chimp_benchmarks.cpp src/memtrackingallocator.h
 	$(CXX) $(CXXFLAGS)  -o chimp_benchmarks ./src/chimp_benchmarks.cpp
