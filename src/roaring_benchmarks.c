@@ -97,11 +97,12 @@ int main(int argc, char **argv) {
         return -1;
     }
     char *dirname = argv[optind];
-    size_t count;
+    size_t count; // Number of input files loaded (and thus, number of bitmaps created).
 
-    size_t *howmany = NULL;
+    size_t *howmany = NULL; // howmany[i] is the number of integers in the i-th input file.
     uint32_t **numbers =
         read_all_integer_files(dirname, extension, &howmany, &count);
+        // numbers[i] points to the array of integers loaded from the i-th file.
     if (numbers == NULL) {
         printf(
             "I could not find or load any data file with extension %s in "
@@ -117,7 +118,7 @@ int main(int argc, char **argv) {
             }
         }
     }
-    uint64_t totalcard = 0;
+    uint64_t totalcard = 0; // Total number of integers across all input files (sum of all howmany[i]).
     for (size_t i = 0; i < count; i++) {
         totalcard += howmany[i];
     }
@@ -128,10 +129,10 @@ int main(int argc, char **argv) {
     uint64_t cycles_start = 0, cycles_final = 0;
 
     RDTSC_START(cycles_start);
-    uint64_t totalsize = 0;
+    uint64_t totalsize = 0; // Total size in bytes of all bitmaps (compressed).
     roaring_bitmap_t **bitmaps = create_all_bitmaps(howmany, numbers, count,runoptimize,copyonwrite, verbose, &totalsize);
     RDTSC_FINAL(cycles_final);
-    uint64_t build_cycles = cycles_final - cycles_start;
+    uint64_t build_cycles = cycles_final - cycles_start; // Cycles spent building the bitmaps.
     if (bitmaps == NULL) return -1;
     if(verbose) printf("Loaded %d bitmaps from directory %s \n", (int)count, dirname);
     data[0] = totalsize;
@@ -300,6 +301,10 @@ int main(int argc, char **argv) {
     * end and, or, andnot and xor cardinality
     */
 
+    /*
+    * Recall that totalsize (data[0]) is the size in bytes of all bitmaps (compressed),
+    * and totalcard is the number of integers across all input files.
+    */
 
     printf(" %20.4f %20.4f %20.4f\n",
            data[0]*25.0/totalcard,
