@@ -92,19 +92,19 @@ ewah64_benchmarks: src/ewah64_benchmarks.cpp
 	$(CXX) $(CXXFLAGS)  -o ewah64_benchmarks ./src/ewah64_benchmarks.cpp -IEWAHBoolArray/headers
 
 chimp_benchmarks: src/chimp_benchmarks.cpp src/memtrackingallocator.h
-	$(CXX) $(CXXFLAGS)  -o chimp_benchmarks ./src/chimp_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -lz -o chimp_benchmarks ./src/chimp_benchmarks.cpp
 zstd_benchmarks: src/zstd_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o zstd_benchmarks ./src/zstd_benchmarks.cpp -lzstd
+	$(CXX) $(CXXFLAGS) -lz -o zstd_benchmarks ./src/zstd_benchmarks.cpp -lzstd
 lz4_benchmarks: src/lz4_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o lz4_benchmarks ./src/lz4_benchmarks.cpp -llz4
+	$(CXX) $(CXXFLAGS) -lz -o lz4_benchmarks ./src/lz4_benchmarks.cpp -llz4
 snappy_benchmarks: src/snappy_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o snappy_benchmarks ./src/snappy_benchmarks.cpp -lsnappy
+	$(CXX) $(CXXFLAGS) -lz -o snappy_benchmarks ./src/snappy_benchmarks.cpp -lsnappy
 gorilla_benchmarks: src/gorilla_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -o gorilla_benchmarks ./src/gorilla_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -lz -o gorilla_benchmarks ./src/gorilla_benchmarks.cpp
 
   
 alp_benchmarks: src/alp_benchmarks.cpp
-	$(CXX) $(CXXFLAGS) -U__AVX512F__ -std=c++17 -o alp_benchmarks ./src/alp_benchmarks.cpp ALP/src/fastlanes_ffor.cpp ALP/src/fastlanes_unffor.cpp ALP/src/fastlanes_generated_ffor.cpp ALP/src/fastlanes_generated_unffor.cpp ALP/src/falp.cpp -IALP/include
+	$(CXX) $(CXXFLAGS) -lz -U__AVX512F__ -std=c++17 -o alp_benchmarks ./src/alp_benchmarks.cpp ALP/src/fastlanes_ffor.cpp ALP/src/fastlanes_unffor.cpp ALP/src/fastlanes_generated_ffor.cpp ALP/src/fastlanes_generated_unffor.cpp ALP/src/falp.cpp -IALP/include
 
 clean:
 	rm -r -f   $(EXECUTABLES) src/roaring.c src/roaring.h src/roaring.hh bigtmp

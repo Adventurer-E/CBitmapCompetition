@@ -8,28 +8,43 @@
 
 #include "benchmark.h"
 #include "numbersfromtextfiles.h"
+#include "floatsfromcsv.h"
 #include "alp/encoder.hpp"
 #include "alp/decoder.hpp"
 #include "fastlanes/ffor.hpp"
 #include "fastlanes/unffor.hpp"
 #include "alp/constants.hpp"
 
+static inline double load_value(uint32_t v, bool floatdata) {
+    if(floatdata) {
+        float f;
+        memcpy(&f, &v, sizeof(float));
+        return (double)f;
+    }
+    return (double)v;
+}
+
 static void printusage(char *command) {
     printf(" Try %s directory \n where directory could be benchmarks/realdata/census1881\n", command);
     printf("the -v flag turns on verbose mode\n");
+    printf("use -f for floating point datasets\n");
 }
 
 int main(int argc, char **argv) {
     int c;
     const char *extension = ".txt";
     bool verbose = false;
-    while ((c = getopt(argc, argv, "ve:h")) != -1) {
+    bool floatdata = false;
+    while ((c = getopt(argc, argv, "ve:fh")) != -1) {
         switch (c) {
         case 'e':
             extension = optarg;
             break;
         case 'v':
             verbose = true;
+            break;
+        case 'f':
+            floatdata = true;
             break;
         case 'h':
             printusage(argv[0]);
@@ -45,7 +60,9 @@ int main(int argc, char **argv) {
     char *dirname = argv[optind];
     size_t count;
     size_t *howmany = NULL;
-    uint32_t **numbers = read_all_integer_files(dirname, extension, &howmany, &count);
+    uint32_t **numbers = floatdata ?
+        read_all_float_files(dirname, extension, &howmany, &count) :
+        read_all_integer_files(dirname, extension, &howmany, &count);
     if(numbers == NULL) {
         printf("I could not find or load any data file with extension %s in directory %s.\n", extension, dirname);
         return -1;
@@ -80,7 +97,7 @@ int main(int argc, char **argv) {
         while(pos < n) {
             size_t chunk = n - pos;
             if(chunk > 1024) chunk = 1024;
-            for(size_t j=0;j<chunk;j++) input_buf[j] = (double)vals[pos+j];
+            for(size_t j=0;j<chunk;j++) input_buf[j] = load_value(vals[pos+j], floatdata);
             for(size_t j=chunk;j<1024;j++) input_buf[j] = input_buf[chunk-1];
 
             alp::state<double> stt;
@@ -102,7 +119,7 @@ int main(int argc, char **argv) {
         while(pos < n) {
             size_t chunk = n - pos;
             if(chunk > 1024) chunk = 1024;
-            for(size_t j=0;j<chunk;j++) input_buf[j] = (double)vals[pos+j];
+            for(size_t j=0;j<chunk;j++) input_buf[j] = load_value(vals[pos+j], floatdata);
             for(size_t j=chunk;j<1024;j++) input_buf[j] = input_buf[chunk-1];
 
             alp::state<double> stt;
@@ -123,7 +140,12 @@ int main(int argc, char **argv) {
             RDTSC_FINAL(end);
             iter_cycles += end - start;
 
-            for(size_t j=0;j<chunk;j++) if(decoded[j] != (double)vals[pos+j]) { fprintf(stderr,"decoding error\n"); return -1; }
+            for(size_t j=0;j<chunk;j++) {
+                if(decoded[j] != load_value(vals[pos+j], floatdata)) {
+                    fprintf(stderr,"decoding error\n");
+                    return -1;
+                }
+            }
 
             totalsize += stt.bit_width * 1024.0;
             totalsize += exc_count[0] * ((double)alp::Constants<double>::EXCEPTION_SIZE + alp::EXCEPTION_POSITION_SIZE);

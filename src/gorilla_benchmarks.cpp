@@ -14,6 +14,7 @@
 extern "C" {
 #include "benchmark.h"
 #include "numbersfromtextfiles.h"
+#include "floatsfromcsv.h"
 }
 
 class OutputBitStream {
@@ -137,10 +138,10 @@ static void printusage(char *command){
 }
 
 int main(int argc,char**argv){
-    int c;const char*extension=".txt";bool verbose=false;
-    while((c=getopt(argc,argv,"ve:h"))!=-1)switch(c){case'e':extension=optarg;break;case'v':verbose=true;break;case'h':printusage(argv[0]);return 0;default:abort();}
+    int c;const char*extension=".txt";bool verbose=false;bool floatdata=false;
+    while((c=getopt(argc,argv,"ve:fh"))!=-1)switch(c){case'e':extension=optarg;break;case'v':verbose=true;break;case'f':floatdata=true;break;case'h':printusage(argv[0]);return 0;default:abort();}
     if(optind>=argc){printusage(argv[0]);return -1;}
-    char*dirname=argv[optind];size_t count;size_t*howmany=NULL;uint32_t**numbers=read_all_integer_files(dirname,extension,&howmany,&count);if(numbers==NULL){printf("I could not find or load any data file with extension %s in directory %s.\n",extension,dirname);return -1;}
+    char*dirname=argv[optind];size_t count;size_t*howmany=NULL;uint32_t**numbers=floatdata?read_all_float_files(dirname,extension,&howmany,&count):read_all_integer_files(dirname,extension,&howmany,&count);if(numbers==NULL){printf("I could not find or load any data file with extension %s in directory %s.\n",extension,dirname);return -1;}
     uint64_t totalcard=0;for(size_t i=0;i<count;i++) totalcard+=howmany[i];
     uint64_t build_cycles=0,iter_cycles=0,insert_cycles=0,totalsize=0;
 
