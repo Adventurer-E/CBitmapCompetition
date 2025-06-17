@@ -39,8 +39,8 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks chimp_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
-
+EXECUTABLES=wah32_benchmarks chimp_benchmarks brotli_benchmarks zstd_benchmarks lz4_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
+	
 all: $(EXECUTABLES)
 
 test:
@@ -93,6 +93,12 @@ ewah64_benchmarks: src/ewah64_benchmarks.cpp
 
 chimp_benchmarks: src/chimp_benchmarks.cpp src/memtrackingallocator.h
 	$(CXX) $(CXXFLAGS)  -o chimp_benchmarks ./src/chimp_benchmarks.cpp
+brotli_benchmarks: src/brotli_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -o brotli_benchmarks ./src/brotli_benchmarks.cpp -lbrotlienc -lbrotlidec -lbrotlicommon
+zstd_benchmarks: src/zstd_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -o zstd_benchmarks ./src/zstd_benchmarks.cpp -lzstd
+lz4_benchmarks: src/lz4_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -o lz4_benchmarks ./src/lz4_benchmarks.cpp -llz4
 
 clean:
 	rm -r -f   $(EXECUTABLES) src/roaring.c src/roaring.h src/roaring.hh bigtmp
