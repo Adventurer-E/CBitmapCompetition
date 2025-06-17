@@ -77,9 +77,14 @@ public:
 };
 
 // Chimp32 compressor (simplified C++ port)
+// C++ implementation of the Chimp32 codec as found in the Java
+// submodule (src/main/java/gr/aueb/delorean/chimp).  The logic
+// mirrors the Java version so that this benchmark can run
+// without requiring a JVM.
 class Chimp32Compressor {
 public:
     static const int THRESHOLD = 5;
+    static const uint32_t NAN_INT = 0x7fc00000u;
     static const uint8_t leadingRepresentation[64];
     static const uint8_t leadingRound[64];
 
@@ -124,6 +129,11 @@ public:
     }
 
     void flush() { out.flush(); }
+    void close() {
+        addValue(NAN_INT);
+        out.writeBit(false);
+        flush();
+    }
     size_t getSize() const { return out.bitsWritten; }
     const std::vector<uint8_t>& getBuffer() const { return out.buffer; }
 };
@@ -150,13 +160,16 @@ public:
     int storedTrailingZeros = 0;
     uint32_t storedVal = 0;
     bool first = true;
+    bool end = false;
 
     explicit Chimp32Decompressor(const std::vector<uint8_t>& buf) : in(buf) {}
 
     bool readValue(uint32_t &v) {
+        if(end) return false;
         if(first) {
             first = false;
             storedVal = in.readBits(32);
+            if(storedVal == Chimp32Compressor::NAN_INT) { end = true; return false; }
             v = storedVal;
             return true;
         }
@@ -169,6 +182,7 @@ public:
             uint32_t val = in.readBits(32 - storedLeadingZeros);
             val = storedVal ^ val;
             storedVal = val;
+            if(storedVal == Chimp32Compressor::NAN_INT) { end = true; return false; }
             v = val;
         } else if(in.readBit()) { //01
             storedLeadingZeros = leadingRepresentation[in.readBits(3)];
@@ -179,10 +193,12 @@ public:
             val <<= storedTrailingZeros;
             val = storedVal ^ val;
             storedVal = val;
+            if(storedVal == Chimp32Compressor::NAN_INT) { end = true; return false; }
             v = val;
         } else { //00
             v = storedVal;
         }
+        if(storedVal == Chimp32Compressor::NAN_INT) { end = true; return false; }
         return true;
     }
 };
@@ -223,7 +239,7 @@ int main(int argc, char **argv) {
         uint64_t start,end;
         RDTSC_START(start);
         for(size_t j=0;j<howmany[i];j++) cmp.addValue(numbers[i][j]);
-        cmp.flush();
+        cmp.close();
         RDTSC_FINAL(end);
         build_cycles += end-start;
         totalsize += (cmp.getSize()+7)/8;
@@ -232,9 +248,11 @@ int main(int argc, char **argv) {
 
         Chimp32Decompressor dec(cmp.getBuffer());
         RDTSC_START(start);
-        for(size_t j=0;j<howmany[i];j++) {
-            uint32_t val; dec.readValue(val);
-            if(val!=numbers[i][j]) { fprintf(stderr,"decoding error\n"); return -1; }
+        size_t idx = 0;
+        uint32_t val;
+        while(dec.readValue(val)) {
+            if(val!=numbers[i][idx]) { fprintf(stderr,"decoding error\n"); return -1; }
+            idx++;
         }
         RDTSC_FINAL(end);
         iter_cycles += end-start;
