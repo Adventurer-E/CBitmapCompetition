@@ -39,8 +39,8 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks chimp_benchmarks brotli_benchmarks zstd_benchmarks lz4_benchmarks snappy_benchmarks xz_benchmarks gorilla_benchmarks fpc_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
-	
+EXECUTABLES=wah32_benchmarks chimp_benchmarks brotli_benchmarks zstd_benchmarks lz4_benchmarks snappy_benchmarks xz_benchmarks gorilla_benchmarks fpc_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks alp_benchmakrs gen
+
 all: $(EXECUTABLES)
 
 test:
@@ -109,6 +109,9 @@ fpc_benchmarks: src/fpc_benchmarks.cpp
 
 xz_benchmarks: src/xz_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -o xz_benchmarks ./src/xz_benchmarks.cpp -llzma
+  
+alp_benchmarks: src/alp_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -U__AVX512F__ -std=c++17 -o alp_benchmarks ./src/alp_benchmarks.cpp ALP/src/fastlanes_ffor.cpp ALP/src/fastlanes_unffor.cpp ALP/src/fastlanes_generated_ffor.cpp ALP/src/fastlanes_generated_unffor.cpp ALP/src/falp.cpp -IALP/include
 
 clean:
 	rm -r -f   $(EXECUTABLES) src/roaring.c src/roaring.h src/roaring.hh bigtmp
