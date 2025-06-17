@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     int c;
     const char *extension = ".txt";
     bool verbose = false;
-    uint64_t data[13];
+    uint64_t data[15];
     while ((c = getopt(argc, argv, "ve:h")) != -1) switch (c) {
         case 'e':
             extension = optarg;
@@ -100,6 +100,12 @@ int main(int argc, char **argv) {
 
 
     uint64_t cycles_start = 0, cycles_final = 0;
+
+    RDTSC_START(cycles_start);
+    std::vector<EWAHBoolArray<uint32_t> > tmp_insert = create_all_bitmaps(howmany, numbers, count);
+    RDTSC_FINAL(cycles_final);
+    data[13] = cycles_final - cycles_start; // incremental insertion cycles
+    tmp_insert.clear();
 
     RDTSC_START(cycles_start);
     std::vector<EWAHBoolArray<uint32_t> > bitmaps = create_all_bitmaps(howmany, numbers, count);
@@ -215,17 +221,25 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     for (size_t i = 0; i < count; ++i) {
-        EWAHBoolArray<uint32_t> & b = bitmaps[i];
-        for (auto j = b.begin(); j != b.end(); ++j) {
-            total_count++;
-        }
+        std::vector<size_t> v = bitmaps[i].toArray();
+        total_count += v.size();
     }
     RDTSC_FINAL(cycles_final);
     data[8] = cycles_final - cycles_start;
     assert(total_count == totalcard);
 
-    if(verbose) printf("Iterating over %zu bitmaps took %" PRIu64 " cycles\n", count,
+    if(verbose) printf("Decompressing %zu bitmaps took %" PRIu64 " cycles\n", count,
            cycles_final - cycles_start);
+
+    RDTSC_START(cycles_start);
+    uint64_t batch_count = 0;
+    for (size_t i = 0; i < count; ++i) {
+        std::vector<size_t> out = bitmaps[i].toArray();
+        batch_count += out.size();
+    }
+    RDTSC_FINAL(cycles_final);
+    data[14] = cycles_final - cycles_start;
+    assert(batch_count == totalcard);
 
     if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
 
@@ -283,10 +297,12 @@ int main(int argc, char **argv) {
     * end and, or, andnot and xor cardinality
     */
 
-    printf(" %20.4f %20.4f %20.4f\n",
+    printf(" %20.4f %20.4f %20.4f %20.4f %20.4f\n",
       data[0]*25.0/totalcard,
       build_cycles*1.0/(totalcard*4),
-      data[8]*1.0/(totalcard*4)
+      data[8]*1.0/(totalcard*4),
+      data[13]*1.0/(totalcard*4),
+      data[14]*1.0/(totalcard*4)
     );
     for (int i = 0; i < (int)count; ++i) {
         free(numbers[i]);
