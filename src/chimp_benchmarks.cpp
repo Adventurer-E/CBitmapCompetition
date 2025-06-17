@@ -232,7 +232,18 @@ int main(int argc, char **argv) {
 
     uint64_t totalcard = 0;
     for(size_t i=0;i<count;i++) totalcard += howmany[i];
-    uint64_t build_cycles = 0, iter_cycles = 0, totalsize = 0;
+    uint64_t build_cycles = 0, iter_cycles = 0, insert_cycles = 0, totalsize = 0;
+
+    /* measure incremental insertion speed */
+    for(size_t i=0;i<count;i++) {
+        Chimp32Compressor tmp;
+        uint64_t start,end;
+        RDTSC_START(start);
+        for(size_t j=0;j<howmany[i];j++) tmp.addValue(numbers[i][j]);
+        tmp.flush();
+        RDTSC_FINAL(end);
+        insert_cycles += end-start;
+    }
 
     for(size_t i=0;i<count;i++) {
         Chimp32Compressor cmp;
@@ -262,10 +273,11 @@ int main(int argc, char **argv) {
     for(size_t i=0;i<count;i++) free(numbers[i]);
     free(numbers); free(howmany);
 
-    printf(" %20.4f %20.4f %20.4f\n",
-           totalsize*25.0/totalcard,
-           build_cycles*1.0/(totalcard*4),
-           iter_cycles*1.0/(totalcard*4));
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
+           totalsize*8.0/totalcard,
+           build_cycles*1.0/totalcard,
+           insert_cycles*1.0/totalcard,
+           iter_cycles*1.0/totalcard);
     return 0;
 }
 

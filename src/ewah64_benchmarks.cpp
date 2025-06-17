@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     int c;
     const char *extension = ".txt";
     bool verbose = false;
-    uint64_t data[13];
+    uint64_t data[14];
     while ((c = getopt(argc, argv, "ve:h")) != -1) switch (c) {
         case 'e':
             extension = optarg;
@@ -99,6 +99,12 @@ int main(int argc, char **argv) {
     }
 
     uint64_t cycles_start = 0, cycles_final = 0;
+
+    RDTSC_START(cycles_start);
+    std::vector<EWAHBoolArray<uint64_t> > tmp_insert = create_all_bitmaps(howmany, numbers, count);
+    RDTSC_FINAL(cycles_final);
+    data[13] = cycles_final - cycles_start; // incremental insertion cycles
+    tmp_insert.clear();
 
     RDTSC_START(cycles_start);
     std::vector<EWAHBoolArray<uint64_t> > bitmaps = create_all_bitmaps(howmany, numbers, count);
@@ -214,16 +220,16 @@ int main(int argc, char **argv) {
 
     RDTSC_START(cycles_start);
     for (size_t i = 0; i < count; ++i) {
-        EWAHBoolArray<uint64_t> & b = bitmaps[i];
-        for (auto j = b.begin(); j != b.end(); ++j) {
-            total_count++;
-        }
+        std::vector<size_t> v = bitmaps[i].toArray();
+        total_count += v.size();
     }
     RDTSC_FINAL(cycles_final);
     data[8] = cycles_final - cycles_start;
 
-    if(verbose) printf("Iterating over %zu bitmaps took %" PRIu64 " cycles\n", count,
+    if(verbose) printf("Decompressing %zu bitmaps took %" PRIu64 " cycles\n", count,
            cycles_final - cycles_start);
+
+    /* no batch decompression timing */
 
     if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
 
@@ -282,10 +288,11 @@ int main(int argc, char **argv) {
     assert(total_count == totalcard);
 
 
-    printf(" %20.4f %20.4f %20.4f\n",
-      data[0]*25.0/totalcard,
-      build_cycles*1.0/(totalcard*4),
-      data[8]*1.0/(totalcard*4)
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
+      data[0]*8.0/totalcard,
+      build_cycles*1.0/totalcard,
+      data[13]*1.0/totalcard,
+      data[8]*1.0/totalcard
     );
 
 

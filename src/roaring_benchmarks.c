@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     bool verbose = false;
     bool copyonwrite = false;
     char *extension = ".txt";
-    uint64_t data[13];
+    uint64_t data[14];
     while ((c = getopt(argc, argv, "cvre:h")) != -1) switch (c) {
         case 'e':
             extension = optarg;
@@ -127,6 +127,17 @@ int main(int argc, char **argv) {
         successivecard += howmany[i-1] + howmany[i];
     }
     uint64_t cycles_start = 0, cycles_final = 0;
+
+    RDTSC_START(cycles_start);
+    for(size_t i = 0; i < count; ++i) {
+        roaring_bitmap_t *tmp = roaring_bitmap_create();
+        for(size_t j = 0; j < howmany[i]; ++j) {
+            roaring_bitmap_add(tmp, numbers[i][j]);
+        }
+        roaring_bitmap_free(tmp);
+    }
+    RDTSC_FINAL(cycles_final);
+    data[13] = cycles_final - cycles_start; // incremental insertion cycles
 
     RDTSC_START(cycles_start);
     uint64_t totalsize = 0; // Total size in bytes of all bitmaps (compressed).
@@ -234,25 +245,20 @@ int main(int argc, char **argv) {
     RDTSC_START(cycles_start);
     for (size_t i = 0; i < count; ++i) {
         roaring_bitmap_t *ra = bitmaps[i];
-        roaring_iterate(ra, roaring_iterator_increment, &total_count);
+        uint32_t card = roaring_bitmap_get_cardinality(ra);
+        uint32_t *out = (uint32_t *)malloc(sizeof(uint32_t) * card);
+        roaring_bitmap_to_uint32_array(ra, out);
+        free(out);
+        total_count += card;
     }
-     /*
-    for (size_t i = 0; i < count; ++i) {
-        roaring_bitmap_t *ra = bitmaps[i];
-        roaring_uint32_iterator_t  j;
-        roaring_init_iterator(ra, &j);
-        while(j.has_value) {
-            total_count ++;
-            roaring_advance_uint32_iterator(&j);
-        }
-    }
-    */
     RDTSC_FINAL(cycles_final);
     data[8] = cycles_final - cycles_start;
-    if(verbose) printf("Iterating over %zu bitmaps took %" PRIu64 " cycles\n", count,
+    if(verbose) printf("Decompressing %zu bitmaps took %" PRIu64 " cycles\n", count,
                            cycles_final - cycles_start);
 
     assert(totalcard == total_count);
+
+    /* no batch decompression timing */
 
     if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
 
@@ -306,10 +312,11 @@ int main(int argc, char **argv) {
     * and totalcard is the number of integers across all input files.
     */
 
-    printf(" %20.4f %20.4f %20.4f\n",
-           data[0]*25.0/totalcard,
-           build_cycles*1.0/(totalcard*4),
-           data[8]*1.0/(totalcard*4)
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
+           data[0]*8.0/totalcard,
+           build_cycles*1.0/totalcard,
+           data[13]*1.0/totalcard,
+           data[8]*1.0/totalcard
           );
 
     for (int i = 0; i < (int)count; ++i) {

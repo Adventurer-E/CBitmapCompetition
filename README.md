@@ -368,8 +368,8 @@ $ make test
 ```
 
 Running `scripts/all.sh` now also writes a CSV file to `scripts/results.csv`
-containing the dataset name, test command, compression ratio, compression speed
-and decompression speed.
+containing the dataset name, test command, compression ratio, compression speed,
+incremental insertion speed, and decompression speed.
 
 ```bash
 $ ./scripts/big.sh

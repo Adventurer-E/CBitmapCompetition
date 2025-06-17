@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
     int c;
     const char *extension = ".txt";
     bool verbose = false;
-    uint64_t data[13];
+    uint64_t data[14];
     while ((c = getopt(argc, argv, "ve:h")) != -1) switch (c) {
         case 'e':
             extension = optarg;
@@ -193,6 +193,13 @@ int main(int argc, char **argv) {
     std::unique_ptr<IntegerCODEC> codec = simdpfor_codec();
 
     uint64_t totalsize = 0;
+    RDTSC_START(cycles_start);
+    std::vector<vector> tmp_insert = compress_all(howmany, numbers, count,
+                                                  *codec, &totalsize);
+    RDTSC_FINAL(cycles_final);
+    data[13] = cycles_final - cycles_start; // incremental insertion cycles
+    tmp_insert.clear();
+
     RDTSC_START(cycles_start);
     std::vector<vector> compressed = compress_all(howmany, numbers, count,
                                                   *codec, &totalsize);
@@ -370,10 +377,11 @@ int main(int argc, char **argv) {
     assert(successive_xorcard == successive_xor);
     assert(successive_andnotcard == successive_andnot);
 
-    printf(" %20.4f %20.4f %20.4f\n",
-      data[0]*25.0/totalcard,
-      build_cycles*1.0/(totalcard*4),
-      data[8]*1.0/(totalcard*4)
+    printf(" %20.4f %20.4f %20.4f %20.4f\n",
+      data[0]*8.0/totalcard,
+      build_cycles*1.0/totalcard,
+      data[13]*1.0/totalcard,
+      data[8]*1.0/totalcard
     );
 
     for (int i = 0; i < (int)count; ++i) {
