@@ -19,3 +19,6 @@
 [submodule "chimp"]
 	path = chimp
 	url = https://github.com/panagiotisl/chimp
+[submodule "ALP"]
+	path = ALP
+	url = https://github.com/cwida/ALP
