@@ -1,395 +1,253 @@
-// Placeholder benchmark for Chimp using STL vectors
-// Actual Chimp compression is not integrated
-
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 #define __STDC_FORMAT_MACROS 1
 #include <inttypes.h>
-#include <cstdint>
-#include <iostream>
-#include <algorithm>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <vector>
-#include <list>
-#include <queue>
 #include <cassert>
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 #include "benchmark.h"
 #include "numbersfromtextfiles.h"
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef MEMTRACKED
-#include "memtrackingallocator.h"
-#else
-size_t memory_usage;
-#endif
-
-void initializeMemUsageCounter()  {
-    memory_usage = 0;
 }
 
-uint64_t getMemUsageInBytes()  {
-    return memory_usage;
-}
-
-// credit http://stackoverflow.com/questions/37767585/count-elements-in-union-of-two-sets-using-stl
-template <typename T>
-class count_back_inserter {
+// Simple bit stream writer using big-endian bit order
+class OutputBitStream {
 public:
-    uint64_t & count;
-    typedef void value_type;
-    typedef void difference_type;
-    typedef void pointer;
-    typedef void reference;
-    typedef std::output_iterator_tag iterator_category;
-    count_back_inserter(uint64_t & c) : count(c) {};
-    void operator=(const T &){ }
-    count_back_inserter &operator *(){ return *this; }
-    count_back_inserter &operator++(){ count++;return *this; }
+    std::vector<uint8_t> buffer;
+    uint8_t current{0};
+    int bitsInCurrent{0};
+    size_t bitsWritten{0};
 
-};
-typedef count_back_inserter<uint32_t> inserter;
-
-#ifdef MEMTRACKED
-typedef std::vector<uint32_t,MemoryCountingAllocator<uint32_t> >  vector;
-#else
-typedef std::vector<uint32_t>  vector;
-#endif
-
-static vector  fast_logicalor(size_t n, const vector **inputs) {
-	  class StdVectorPtr {
-
-	  public:
-	    StdVectorPtr(const vector *p, bool o) : ptr(p), own(o) {}
-	    const vector *ptr;
-	    bool own; // whether to clean
-
-	    bool operator<(const StdVectorPtr &o) const {
-	      return o.ptr->size() < ptr->size(); // backward on purpose
-	    }
-	  };
-
-	  if (n == 0) {
-		return vector();
-	  }
-	  if (n == 1) {
-	    return vector(*inputs[0]);
-	  }
-	  std::priority_queue<StdVectorPtr> pq;
-	  for (size_t i = 0; i < n; i++) {
-	    // could use emplace
-	    pq.push(StdVectorPtr(inputs[i], false));
-	  }
-	  while (pq.size() > 2) {
-
-	    StdVectorPtr x1 = pq.top();
-	    pq.pop();
-
-	    StdVectorPtr x2 = pq.top();
-	    pq.pop();
-	    vector * buffer = new vector();
-      std::set_union(x1.ptr->begin(), x1.ptr->end(),x2.ptr->begin(), x2.ptr->end(),std::back_inserter(*buffer));
-	    if (x1.own) {
-	      delete x1.ptr;
-	    }
-	    if (x2.own) {
-	      delete x2.ptr;
-	    }
-	    pq.push(StdVectorPtr(buffer, true));
-	  }
-	  StdVectorPtr x1 = pq.top();
-	  pq.pop();
-
-	  StdVectorPtr x2 = pq.top();
-	  pq.pop();
-
-	  vector  container;
-    std::set_union(x1.ptr->begin(), x1.ptr->end(),x2.ptr->begin(), x2.ptr->end(),std::back_inserter(container));
-
-	  if (x1.own) {
-	    delete x1.ptr;
-	  }
-	  if (x2.own) {
-	    delete x2.ptr;
-	  }
-	  return container;
-	}
-
-
-
-/**
- * Once you have collected all the integers, build the bitmaps.
- */
-static std::vector<vector > create_all_bitmaps(size_t *howmany,
-        uint32_t **numbers, size_t count) {
-    if (numbers == NULL) return std::vector<vector >();
-    std::vector<vector > answer(count);
-
-    for (size_t i = 0; i < count; i++) {
-        vector & bm = answer[i];
-        uint32_t * mynumbers = numbers[i];
-        for(size_t j = 0; j < howmany[i] ; ++j) {
-            bm.push_back(mynumbers[j]);
+    void writeBit(bool bit) {
+        current <<= 1;
+        if (bit) current |= 1;
+        bitsInCurrent++;
+        bitsWritten++;
+        if(bitsInCurrent==8) {
+            buffer.push_back(current);
+            current = 0;
+            bitsInCurrent = 0;
         }
-        bm.shrink_to_fit();
     }
-    return answer;
-}
+
+    void writeBits(uint32_t value, int bits) {
+        for(int i=bits-1;i>=0;--i) writeBit((value>>i)&1);
+    }
+
+    void flush() {
+        if(bitsInCurrent>0) {
+            current <<= (8-bitsInCurrent);
+            buffer.push_back(current);
+            current = 0;
+            bitsInCurrent = 0;
+        }
+    }
+};
+
+// Simple bit stream reader matching OutputBitStream
+class InputBitStream {
+public:
+    const std::vector<uint8_t>& buffer;
+    size_t pos{0};
+    int bitPos{0};
+
+    explicit InputBitStream(const std::vector<uint8_t>& buf) : buffer(buf) {}
+
+    bool readBit() {
+        uint8_t b = buffer[pos];
+        bool bit = (b >> (7-bitPos)) & 1;
+        bitPos++;
+        if(bitPos==8) { bitPos=0; pos++; }
+        return bit;
+    }
+
+    uint32_t readBits(int bits) {
+        uint32_t v=0;
+        for(int i=0;i<bits;i++) {
+            v = (v<<1) | (readBit()?1:0);
+        }
+        return v;
+    }
+};
+
+// Chimp32 compressor (simplified C++ port)
+class Chimp32Compressor {
+public:
+    static const int THRESHOLD = 5;
+    static const uint8_t leadingRepresentation[64];
+    static const uint8_t leadingRound[64];
+
+    OutputBitStream out;
+    int storedLeadingZeros = INT32_MAX;
+    uint32_t storedVal = 0;
+    bool first = true;
+
+    void addValue(uint32_t value) {
+        if(first) {
+            first = false;
+            storedVal = value;
+            out.writeBits(storedVal,32);
+            return;
+        }
+        uint32_t xorv = storedVal ^ value;
+        if(xorv==0) {
+            out.writeBit(0); out.writeBit(0);
+            storedLeadingZeros = 33;
+        } else {
+            int leading = leadingRound[__builtin_clz(xorv)];
+            int trailing = __builtin_ctz(xorv);
+            if(trailing > THRESHOLD) {
+                int significant = 32 - leading - trailing;
+                out.writeBit(0); out.writeBit(1);
+                out.writeBits(leadingRepresentation[leading],3);
+                out.writeBits(significant,5);
+                out.writeBits(xorv>>trailing, significant);
+                storedLeadingZeros = 33;
+            } else if(leading == storedLeadingZeros) {
+                int significant = 32 - leading;
+                out.writeBit(1); out.writeBit(0);
+                out.writeBits(xorv, significant);
+            } else {
+                storedLeadingZeros = leading;
+                int significant = 32 - leading;
+                out.writeBits(24 + leadingRepresentation[leading],5);
+                out.writeBits(xorv, significant);
+            }
+        }
+        storedVal = value;
+    }
+
+    void flush() { out.flush(); }
+    size_t getSize() const { return out.bitsWritten; }
+    const std::vector<uint8_t>& getBuffer() const { return out.buffer; }
+};
+
+const uint8_t Chimp32Compressor::leadingRepresentation[64] = {
+    0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,
+    3,3,4,4,5,5,6,6,7,7,7,7,7,7,7,7,
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+};
+const uint8_t Chimp32Compressor::leadingRound[64] = {
+    0,0,0,0,0,0,0,0,8,8,8,8,12,12,12,12,
+    16,16,18,18,20,20,22,22,24,24,24,24,24,24,24,24,
+    24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,
+    24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24
+};
+
+// Decompressor
+class Chimp32Decompressor {
+public:
+    static const uint8_t leadingRepresentation[8];
+    InputBitStream in;
+    int storedLeadingZeros = INT32_MAX;
+    int storedTrailingZeros = 0;
+    uint32_t storedVal = 0;
+    bool first = true;
+
+    explicit Chimp32Decompressor(const std::vector<uint8_t>& buf) : in(buf) {}
+
+    bool readValue(uint32_t &v) {
+        if(first) {
+            first = false;
+            storedVal = in.readBits(32);
+            v = storedVal;
+            return true;
+        }
+        if(in.readBit()) { // 1?
+            if(in.readBit()) { //11
+                storedLeadingZeros = leadingRepresentation[in.readBits(3)];
+            }
+            int significant = 32 - storedLeadingZeros;
+            if(significant==0) significant = 32;
+            uint32_t val = in.readBits(32 - storedLeadingZeros);
+            val = storedVal ^ val;
+            storedVal = val;
+            v = val;
+        } else if(in.readBit()) { //01
+            storedLeadingZeros = leadingRepresentation[in.readBits(3)];
+            int significant = in.readBits(5);
+            if(significant==0) significant = 32;
+            storedTrailingZeros = 32 - significant - storedLeadingZeros;
+            uint32_t val = in.readBits(32 - storedLeadingZeros - storedTrailingZeros);
+            val <<= storedTrailingZeros;
+            val = storedVal ^ val;
+            storedVal = val;
+            v = val;
+        } else { //00
+            v = storedVal;
+        }
+        return true;
+    }
+};
+
+const uint8_t Chimp32Decompressor::leadingRepresentation[8] = {0,8,12,16,18,20,22,24};
 
 static void printusage(char *command) {
-    printf(
-        " Try %s directory \n where directory could be "
-        "benchmarks/realdata/census1881\n",
-        command);
-    ;
-    printf("the -v flag turns on verbose mode");
-
+    printf(" Try %s directory \n where directory could be benchmarks/realdata/census1881\n", command);
+    printf("the -v flag turns on verbose mode\n");
 }
 
 int main(int argc, char **argv) {
     int c;
     const char *extension = ".txt";
     bool verbose = false;
-    uint64_t data[13];
-    initializeMemUsageCounter();
     while ((c = getopt(argc, argv, "ve:h")) != -1) switch (c) {
-        case 'e':
-            extension = optarg;
-            break;
-        case 'v':
-            verbose = true;
-            break;
-        case 'h':
-            printusage(argv[0]);
-            return 0;
-        default:
-            abort();
-        }
-    if (optind >= argc) {
-        printusage(argv[0]);
-        return -1;
+        case 'e': extension = optarg; break;
+        case 'v': verbose = true; break;
+        case 'h': printusage(argv[0]); return 0;
+        default: abort();
     }
+    if (optind >= argc) { printusage(argv[0]); return -1; }
     char *dirname = argv[optind];
     size_t count;
-
-
     size_t *howmany = NULL;
-    uint32_t **numbers =
-        read_all_integer_files(dirname, extension, &howmany, &count);
-    if (numbers == NULL) {
-        printf(
-            "I could not find or load any data file with extension %s in "
-            "directory %s.\n",
-            extension, dirname);
+    uint32_t **numbers = read_all_integer_files(dirname, extension, &howmany, &count);
+    if(numbers==NULL) {
+        printf("I could not find or load any data file with extension %s in directory %s.\n", extension, dirname);
         return -1;
     }
-    uint32_t maxvalue = 0;
-    for (size_t i = 0; i < count; i++) {
-      if( howmany[i] > 0 ) {
-        if(maxvalue < numbers[i][howmany[i]-1]) {
-           maxvalue = numbers[i][howmany[i]-1];
-         }
-      }
-    }
+
     uint64_t totalcard = 0;
-    for (size_t i = 0; i < count; i++) {
-      totalcard += howmany[i];
-    }
-    uint64_t successivecard = 0;
-    for (size_t i = 1; i < count; i++) {
-       successivecard += howmany[i-1] + howmany[i];
-    }
-    uint64_t cycles_start = 0, cycles_final = 0;
+    for(size_t i=0;i<count;i++) totalcard += howmany[i];
+    uint64_t build_cycles = 0, iter_cycles = 0, totalsize = 0;
 
-    RDTSC_START(cycles_start);
-    std::vector<vector> bitmaps = create_all_bitmaps(howmany, numbers, count);
-    RDTSC_FINAL(cycles_final);
-    uint64_t build_cycles = cycles_final - cycles_start;
-    if (bitmaps.empty()) return -1;
-    if(verbose) printf("Loaded %d bitmaps from directory %s \n", (int)count, dirname);
-    uint64_t totalsize = getMemUsageInBytes();
-    data[0] = totalsize;
+    for(size_t i=0;i<count;i++) {
+        Chimp32Compressor cmp;
+        uint64_t start,end;
+        RDTSC_START(start);
+        for(size_t j=0;j<howmany[i];j++) cmp.addValue(numbers[i][j]);
+        cmp.flush();
+        RDTSC_FINAL(end);
+        build_cycles += end-start;
+        totalsize += (cmp.getSize()+7)/8;
 
-    if(verbose) printf("Total size in bytes =  %" PRIu64 " \n", totalsize);
+        if(verbose) fprintf(stderr, "compressed set %zu, bits=%zu\n", i, cmp.getSize());
 
-    uint64_t successive_and = 0;
-    uint64_t successive_or = 0;
-    uint64_t total_or = 0;
-    uint64_t total_count = 0;
-    uint64_t successive_andnot = 0;
-    uint64_t successive_xor = 0;
-
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-        vector v;
-        std::set_intersection(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
-        successive_and += v.size();
-    }
-    RDTSC_FINAL(cycles_final);
-    data[1] = cycles_final - cycles_start;
-    if(verbose) printf("Successive intersections on %zu bitmaps took %" PRIu64 " cycles\n", count,
-                           cycles_final - cycles_start);
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-        vector v;
-        std::set_union(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
-        successive_or += v.size();
-    }
-    RDTSC_FINAL(cycles_final);
-    data[2] = cycles_final - cycles_start;
-    if(verbose) printf("Successive unions on %zu bitmaps took %" PRIu64 " cycles\n", count,
-                           cycles_final - cycles_start);
-
-    RDTSC_START(cycles_start);
-    if(count>1) {
-        vector v;
-        std::set_union(bitmaps[0].begin(), bitmaps[0].end(),bitmaps[1].begin(), bitmaps[1].end(),std::back_inserter(v));
-        for (int i = 2; i < (int)count ; ++i) {
-            vector newv;
-            std::set_union(v.begin(), v.end(),bitmaps[i].begin(), bitmaps[i].end(),std::back_inserter(newv));
-            v.swap(newv);
+        Chimp32Decompressor dec(cmp.getBuffer());
+        RDTSC_START(start);
+        for(size_t j=0;j<howmany[i];j++) {
+            uint32_t val; dec.readValue(val);
+            if(val!=numbers[i][j]) { fprintf(stderr,"decoding error\n"); return -1; }
         }
-        total_or = v.size();
+        RDTSC_FINAL(end);
+        iter_cycles += end-start;
+        if(verbose) fprintf(stderr, "decompressed set %zu\n", i);
     }
-    RDTSC_FINAL(cycles_final);
-    data[3] = cycles_final - cycles_start;
-    if(verbose) printf("Total naive unions on %zu bitmaps took %" PRIu64 " cycles\n", count,
-                           cycles_final - cycles_start);
-    RDTSC_START(cycles_start);
-    if(count>1) {
-        const vector  ** allofthem = new const vector* [count];
-        for(int i = 0 ; i < (int) count; ++i) allofthem[i] = & bitmaps[i];
-        vector totalorbitmap = fast_logicalor(count, allofthem);
-        total_or = totalorbitmap.size();
-        delete[] allofthem;
-    }
-    RDTSC_FINAL(cycles_final);
-    data[4] = cycles_final - cycles_start;
-    if(verbose) printf("Total heap unions on %zu bitmaps took %" PRIu64 " cycles\n", count,
-                           cycles_final - cycles_start);
 
-    RDTSC_START(cycles_start);
-    uint64_t quartcount = 0;
-    for (size_t i = 0; i < count ; ++i) {
-      if ( std::binary_search(bitmaps[i].begin(),bitmaps[i].end(),maxvalue/4 ) )
-      	quartcount ++;
-      if ( std::binary_search(bitmaps[i].begin(),bitmaps[i].end(),maxvalue/2 ) )
-      	quartcount ++;
-      if ( std::binary_search(bitmaps[i].begin(),bitmaps[i].end(),3*maxvalue/4 ) )
-      	quartcount ++;
-    }
-    RDTSC_FINAL(cycles_final);
-    data[5] = cycles_final - cycles_start;
-
-    if(verbose) printf("Quartile queries on %zu bitmaps took %" PRIu64 " cycles\n", count,
-           cycles_final - cycles_start);
-
-    if(verbose) printf("Collected stats  %" PRIu64 "  %" PRIu64 "  %" PRIu64 " %" PRIu64 "\n",successive_and,successive_or,total_or,quartcount);
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-        vector v;
-        std::set_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
-        successive_andnot += v.size();
-    }
-    RDTSC_FINAL(cycles_final);
-    data[6] = cycles_final - cycles_start;
-
-    if(verbose) printf("Successive differences on %zu bitmaps took %" PRIu64 " cycles\n", count,
-           cycles_final - cycles_start);
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-        vector v;
-        std::set_symmetric_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),std::back_inserter(v));
-        successive_xor += v.size();
-    }
-    RDTSC_FINAL(cycles_final);
-    data[7] = cycles_final - cycles_start;
-
-    if(verbose) printf("Successive symmetric differences on %zu bitmaps took %" PRIu64 " cycles\n", count,
-           cycles_final - cycles_start);
-
-    RDTSC_START(cycles_start);
-    for (size_t i = 0; i < count; ++i) {
-        vector & b = bitmaps[i];
-        for(auto j = b.begin(); j != b.end() ; j++) {
-            total_count++;
-        }
-    }
-    RDTSC_FINAL(cycles_final);
-    data[8] = cycles_final - cycles_start;
-    assert(total_count == totalcard);
-
-    if(verbose) printf("Iterating over %zu bitmaps took %" PRIu64 " cycles\n", count,
-           cycles_final - cycles_start);
-
-    assert(successive_xor + successive_and == successive_or);
-
-    /**
-    * and, or, andnot and xor cardinality
-    */
-    uint64_t successive_andcard = 0;
-    uint64_t successive_orcard = 0;
-    uint64_t successive_andnotcard = 0;
-    uint64_t successive_xorcard = 0;
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-      std::set_intersection(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_andcard));
-    }
-    RDTSC_FINAL(cycles_final);
-    data[9] = cycles_final - cycles_start;
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-      std::set_union(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_orcard));
-    }
-    RDTSC_FINAL(cycles_final);
-    data[10] = cycles_final - cycles_start;
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-      std::set_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_andnotcard));
-    }
-    RDTSC_FINAL(cycles_final);
-    data[11] = cycles_final - cycles_start;
-
-    RDTSC_START(cycles_start);
-    for (int i = 0; i < (int)count - 1; ++i) {
-      std::set_symmetric_difference(bitmaps[i].begin(), bitmaps[i].end(),bitmaps[i+1].begin(), bitmaps[i+1].end(),inserter(successive_xorcard));
-    }
-    RDTSC_FINAL(cycles_final);
-    data[12] = cycles_final - cycles_start;
-
-    assert(successive_andcard == successive_and);
-    assert(successive_orcard == successive_or);
-    assert(successive_xorcard == successive_xor);
-    assert(successive_andnotcard == successive_andnot);
-
-    /**
-    * end and, or, andnot and xor cardinality
-    */
+    for(size_t i=0;i<count;i++) free(numbers[i]);
+    free(numbers); free(howmany);
 
     printf(" %20.4f %20.4f %20.4f\n",
-      data[0]*25.0/totalcard,
-      build_cycles*1.0/(totalcard*4),
-      data[8]*1.0/(totalcard*4)
-    );
-
-    for (int i = 0; i < (int)count; ++i) {
-        free(numbers[i]);
-        numbers[i] = NULL;  // paranoid
-    }
-    free(howmany);
-    free(numbers);
-
+           totalsize*25.0/totalcard,
+           build_cycles*1.0/(totalcard*4),
+           iter_cycles*1.0/(totalcard*4));
     return 0;
 }
+
