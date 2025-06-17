@@ -39,7 +39,7 @@ endif # debug
 
 
 
-EXECUTABLES=wah32_benchmarks chimp_benchmarks brotli_benchmarks zstd_benchmarks lz4_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
+EXECUTABLES=wah32_benchmarks chimp_benchmarks brotli_benchmarks zstd_benchmarks lz4_benchmarks snappy_benchmarks lzma_benchmarks concise_benchmarks roaring_benchmarks slow_roaring_benchmarks ewah32_benchmarks ewah64_benchmarks malloced_roaring_benchmarks hot_roaring_benchmarks hot_slow_roaring_benchmarks gen
 	
 all: $(EXECUTABLES)
 
@@ -99,6 +99,10 @@ zstd_benchmarks: src/zstd_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -o zstd_benchmarks ./src/zstd_benchmarks.cpp -lzstd
 lz4_benchmarks: src/lz4_benchmarks.cpp
 	$(CXX) $(CXXFLAGS) -o lz4_benchmarks ./src/lz4_benchmarks.cpp -llz4
+snappy_benchmarks: src/snappy_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -o snappy_benchmarks ./src/snappy_benchmarks.cpp -lsnappy
+lzma_benchmarks: src/lzma_benchmarks.cpp
+	$(CXX) $(CXXFLAGS) -o lzma_benchmarks ./src/lzma_benchmarks.cpp -llzma
 
 clean:
 	rm -r -f   $(EXECUTABLES) src/roaring.c src/roaring.h src/roaring.hh bigtmp
